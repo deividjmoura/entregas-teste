@@ -21,10 +21,13 @@ module.exports = {
         mono: ["var(--font-mono)"],
       },
       keyframes: {
-        pulse-led: {
+        "pulse-led": {
           "0%, 100%": { opacity: "1" },
           "50%": { opacity: "0.35" },
         },
+      },
+      animation: {
+        "pulse-led": "pulse-led 1.4s ease-in-out infinite",
       },
       animation: {
         "pulse-led": "pulse-led 1.4s ease-in-out infinite",

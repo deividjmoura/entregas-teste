@@ -12,7 +12,6 @@ body {
   color: #14181b;
 }
 
-/* Foco visível para acessibilidade de teclado */
 :focus-visible {
   outline: 2px solid #3ec1d3;
   outline-offset: 2px;
