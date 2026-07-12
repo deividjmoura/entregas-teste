@@ -1,0 +1,27 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Modelo único e simplificado para o demo. Sem tabela de usuário —
+// nome e perfil são só texto livre por enquanto (auth real fica pra
+// depois, ver README-DEPLOY.md).
+model Solicitacao {
+  id              String   @id @default(uuid())
+  tipo            String   // COMPONENTE_FISICO | CIRCUITO_ELETRONICO
+  descricaoItem   String
+  localDestino    String
+  urgencia        String   // BAIXA | MEDIA | CRITICA
+  status          String   @default("PENDENTE") // PENDENTE | EM_CURSO | ENTREGUE | CANCELADA
+  solicitanteNome String
+  entregadorNome  String?
+  versao          Int      @default(1)
+  criadaEm        DateTime @default(now())
+  atualizadaEm    DateTime @updatedAt
+
+  @@index([status, urgencia])
+}

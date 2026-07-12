@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  background-color: #14181b;
+  color: #edeff1;
+}
+
+::selection {
+  background-color: #f2b705;
+  color: #14181b;
+}
+
+/* Foco visível para acessibilidade de teclado */
+:focus-visible {
+  outline: 2px solid #3ec1d3;
+  outline-offset: 2px;
+}
