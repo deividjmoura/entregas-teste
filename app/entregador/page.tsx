@@ -1,9 +1,12 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { signOut } from "firebase/auth";
 import { TIPO_LABELS, URGENCIA_LABELS, URGENCIA_PESO, type SolicitacaoDTO } from "@/lib/domain";
 import { UrgencyDot } from "@/components/status-badge";
+import { useAuthUser } from "@/lib/use-auth-user";
+import { auth } from "@/lib/firebase";
 
 const URGENCIA_COR: Record<string, string> = {
   CRITICA: "#E8552F",
@@ -13,20 +16,17 @@ const URGENCIA_COR: Record<string, string> = {
 
 export default function EntregadorPage() {
   const router = useRouter();
-  const [nome, setNome] = useState<string | null>(null);
+  const user = useAuthUser();
+  const nome = user?.displayName ?? user?.email ?? null;
   const [pendentes, setPendentes] = useState<SolicitacaoDTO[]>([]);
   const [minhasEmCurso, setMinhasEmCurso] = useState<SolicitacaoDTO[]>([]);
   const [erro, setErro] = useState<string | null>(null);
   const [assumindo, setAssumindo] = useState<string | null>(null);
 
-  useEffect(() => {
-    const n = localStorage.getItem("entregas:nome");
-    if (!n) {
-      router.push("/");
-      return;
-    }
-    setNome(n);
-  }, [router]);
+  async function sair() {
+    await signOut(auth);
+    router.push("/");
+  }
 
   const carregar = useCallback(async () => {
     const [resPendentes, resEmCurso] = await Promise.all([
@@ -88,10 +88,10 @@ export default function EntregadorPage() {
           <h1 className="font-display text-2xl font-semibold text-ink">Olá, {nome}</h1>
         </div>
         <button
-          onClick={() => router.push("/")}
+          onClick={sair}
           className="font-mono text-xs text-dim underline decoration-dotted hover:text-ink"
         >
-          trocar perfil
+          sair
         </button>
       </header>
 

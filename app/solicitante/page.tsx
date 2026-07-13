@@ -1,13 +1,17 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { signOut } from "firebase/auth";
 import { StatusBadge } from "@/components/status-badge";
 import { TIPO_LABELS, URGENCIA_LABELS, type SolicitacaoDTO } from "@/lib/domain";
+import { useAuthUser } from "@/lib/use-auth-user";
+import { auth } from "@/lib/firebase";
 
 export default function SolicitantePage() {
   const router = useRouter();
-  const [nome, setNome] = useState<string | null>(null);
+  const user = useAuthUser();
+  const nome = user?.displayName ?? user?.email ?? null;
   const [minhas, setMinhas] = useState<SolicitacaoDTO[]>([]);
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
@@ -17,14 +21,10 @@ export default function SolicitantePage() {
   const [localDestino, setLocalDestino] = useState("");
   const [urgencia, setUrgencia] = useState("MEDIA");
 
-  useEffect(() => {
-    const n = localStorage.getItem("entregas:nome");
-    if (!n) {
-      router.push("/");
-      return;
-    }
-    setNome(n);
-  }, [router]);
+  async function sair() {
+    await signOut(auth);
+    router.push("/");
+  }
 
   const carregar = useCallback(async (n: string) => {
     const res = await fetch(`/api/solicitacoes?solicitanteNome=${encodeURIComponent(n)}`);
@@ -73,10 +73,10 @@ export default function SolicitantePage() {
           <h1 className="font-display text-2xl font-semibold text-ink">Olá, {nome}</h1>
         </div>
         <button
-          onClick={() => router.push("/")}
+          onClick={sair}
           className="font-mono text-xs text-dim underline decoration-dotted hover:text-ink"
         >
-          trocar perfil
+          sair
         </button>
       </header>
 
