@@ -63,7 +63,15 @@ export default function Home() {
         </div>
 
         <p className="mt-6 text-center font-mono text-[11px] text-dim">
-          demo interna — sem login real ainda
+        Feito com muito ☕ e ❤️ por&nbsp; 
+        <a 
+          href="https://deividmoura.netlify.app/" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="hover:underline hover:text-white transition-colors"
+        >
+              Deivid Moura
+        </a>
         </p>
       </div>
     </main>
