@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { signOut } from "firebase/auth";
 import { StatusBadge } from "@/components/status-badge";
+import { ElapsedTime } from "@/components/elapsed-time";
 import { TIPO_LABELS, URGENCIA_LABELS, type SolicitacaoDTO } from "@/lib/domain";
 import { useAuthUser } from "@/lib/use-auth-user";
 import { auth } from "@/lib/firebase";
@@ -165,7 +166,12 @@ export default function SolicitantePage() {
                   {s.entregadorNome ? ` · ${s.entregadorNome}` : ""}
                 </div>
               </div>
-              <StatusBadge status={s.status} />
+              <div className="flex items-center gap-2">
+                {s.status === "PENDENTE" && (
+                  <ElapsedTime since={s.criadaEm} alertAfterMinutes={5} className="font-mono text-[11px] text-dim" />
+                )}
+                <StatusBadge status={s.status} />
+              </div>
             </div>
           ))}
         </div>

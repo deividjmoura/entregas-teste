@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { signOut } from "firebase/auth";
 import { TIPO_LABELS, URGENCIA_LABELS, URGENCIA_PESO, type SolicitacaoDTO } from "@/lib/domain";
 import { UrgencyDot } from "@/components/status-badge";
+import { ElapsedTime } from "@/components/elapsed-time";
 import { useAuthUser } from "@/lib/use-auth-user";
 import { auth } from "@/lib/firebase";
 
@@ -160,6 +161,11 @@ export default function EntregadorPage() {
               <span className="flex-1 truncate text-ink">{s.descricaoItem}</span>
               <span className="hidden shrink-0 text-dim sm:inline">{TIPO_LABELS[s.tipo]}</span>
               <span className="shrink-0 text-dim">→ {s.localDestino}</span>
+              <ElapsedTime
+                since={s.criadaEm}
+                alertAfterMinutes={5}
+                className="hidden shrink-0 text-[11px] text-dim md:inline"
+              />
               <button
                 onClick={() => assumir(s.id)}
                 disabled={assumindo === s.id}
