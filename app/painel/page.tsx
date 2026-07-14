@@ -35,8 +35,8 @@ export default function PainelPage() {
   if (user === undefined) return null;
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-10">
-      <header className="mb-8 flex items-center justify-between">
+    <main className="mx-auto flex h-screen max-w-3xl flex-col overflow-hidden px-6">
+      <header className="mb-8 mt-10 flex shrink-0 items-center justify-between">
         <div>
           <div className="font-mono text-xs uppercase tracking-[0.2em] text-dim">consulta geral</div>
           <h1 className="font-display text-2xl font-semibold text-ink">Painel de solicitações</h1>
@@ -49,32 +49,37 @@ export default function PainelPage() {
         </button>
       </header>
 
-      <div className="mb-6">
+      <div className="mb-6 shrink-0">
         <input
           value={busca}
           onChange={(e) => setBusca(e.target.value)}
           placeholder="Buscar por item, local, rack/slide ou solicitante..."
-          className="w-full rounded border border-panel-border bg-panel px-4 py-3 text-sm text-ink placeholder:text-dim/60 focus:border-progress"
+          className="w-full rounded border border-panel-border bg-panel px-4 py-3 text-sm uppercase text-ink placeholder:normal-case placeholder:text-dim/60 focus:border-progress"
           autoFocus
         />
       </div>
 
-      {carregando && <p className="mb-3 font-mono text-[11px] text-dim">buscando...</p>}
+      {carregando && <p className="mb-3 shrink-0 font-mono text-[11px] text-dim">buscando...</p>}
 
       {!carregando && resultados.length === 0 && (
-        <p className="rounded border border-panel-border bg-panel px-4 py-6 text-center text-sm text-dim">
+        <p className="shrink-0 rounded border border-panel-border bg-panel px-4 py-6 text-center text-sm text-dim">
           Nenhuma solicitação encontrada.
         </p>
       )}
 
-      <div className="space-y-2">
+      <div className="scroll-area min-h-0 flex-1 space-y-2 overflow-y-auto pb-10 pr-1">
         {resultados.map((s) => (
           <div
             key={s.id}
             className="rounded border border-panel-border bg-panel px-4 py-3"
           >
             <div className="mb-1 flex items-center justify-between gap-3">
-              <span className="text-sm text-ink">{s.descricaoItem}</span>
+              <div className="flex items-center gap-3">
+                {s.foto && (
+                  <img src={s.foto} alt="" className="h-10 w-10 shrink-0 rounded object-cover" />
+                )}
+                <span className="text-sm text-ink">{s.descricaoItem}</span>
+              </div>
               <StatusBadge status={s.status} />
             </div>
             <div className="flex flex-wrap items-center gap-x-2 font-mono text-[11px] text-dim">

@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
-  const { tipo, descricaoItem, localDestino, rackOuSlide, urgencia, solicitanteNome } = body;
+  const { tipo, descricaoItem, localDestino, rackOuSlide, foto, urgencia, solicitanteNome } = body;
 
   if (!tipo || !descricaoItem || !localDestino || !urgencia || !solicitanteNome) {
     return NextResponse.json({ erro: "Campos obrigatórios faltando" }, { status: 400 });
@@ -41,9 +41,10 @@ export async function POST(request: NextRequest) {
   const solicitacao = await prisma.solicitacao.create({
     data: {
       tipo,
-      descricaoItem: String(descricaoItem).trim(),
-      localDestino: String(localDestino).trim(),
-      rackOuSlide: rackOuSlide ? String(rackOuSlide).trim() : null,
+      descricaoItem: String(descricaoItem).trim().toUpperCase(),
+      localDestino: String(localDestino).trim().toUpperCase(),
+      rackOuSlide: rackOuSlide ? String(rackOuSlide).trim().toUpperCase() : null,
+      foto: foto ? String(foto) : null,
       urgencia,
       solicitanteNome: String(solicitanteNome).trim(),
       status: "PENDENTE",

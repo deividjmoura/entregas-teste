@@ -16,6 +16,7 @@ model Solicitacao {
   descricaoItem   String
   localDestino    String
   rackOuSlide     String?  // localização específica dentro do destino (opcional)
+  foto            String?  @db.Text // foto tirada na hora, base64 (opcional)
   urgencia        String   // BAIXA | MEDIA | CRITICA
   status          String   @default("PENDENTE") // PENDENTE | EM_CURSO | ENTREGUE | CANCELADA
   solicitanteNome String
