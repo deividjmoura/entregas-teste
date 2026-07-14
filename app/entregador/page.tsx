@@ -88,12 +88,20 @@ export default function EntregadorPage() {
           <div className="font-mono text-xs uppercase tracking-[0.2em] text-dim">entregador</div>
           <h1 className="font-display text-2xl font-semibold text-ink">Olá, {nome}</h1>
         </div>
-        <button
-          onClick={sair}
-          className="font-mono text-xs text-dim underline decoration-dotted hover:text-ink"
-        >
-          sair
-        </button>
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => router.push("/painel")}
+            className="font-mono text-xs text-dim underline decoration-dotted hover:text-ink"
+          >
+            painel geral
+          </button>
+          <button
+            onClick={sair}
+            className="font-mono text-xs text-dim underline decoration-dotted hover:text-ink"
+          >
+            sair
+          </button>
+        </div>
       </header>
 
       {erro && (

@@ -28,6 +28,7 @@ export interface SolicitacaoDTO {
   tipo: string;
   descricaoItem: string;
   localDestino: string;
+  rackOuSlide: string | null;
   urgencia: string;
   status: string;
   solicitanteNome: string;

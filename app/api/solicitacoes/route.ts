@@ -4,13 +4,27 @@ import { prisma } from "@/lib/prisma";
 export async function GET(request: NextRequest) {
   const status = request.nextUrl.searchParams.get("status");
   const solicitanteNome = request.nextUrl.searchParams.get("solicitanteNome");
+  // "q" é a busca livre usada pelo painel público de consulta
+  const q = request.nextUrl.searchParams.get("q");
+  const limit = request.nextUrl.searchParams.get("limit");
 
   const solicitacoes = await prisma.solicitacao.findMany({
     where: {
       ...(status ? { status } : {}),
       ...(solicitanteNome ? { solicitanteNome } : {}),
+      ...(q
+        ? {
+            OR: [
+              { descricaoItem: { contains: q, mode: "insensitive" } },
+              { localDestino: { contains: q, mode: "insensitive" } },
+              { rackOuSlide: { contains: q, mode: "insensitive" } },
+              { solicitanteNome: { contains: q, mode: "insensitive" } },
+            ],
+          }
+        : {}),
     },
     orderBy: { criadaEm: "desc" },
+    ...(limit ? { take: Number(limit) } : {}),
   });
 
   return NextResponse.json(solicitacoes);
@@ -18,7 +32,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
-  const { tipo, descricaoItem, localDestino, urgencia, solicitanteNome } = body;
+  const { tipo, descricaoItem, localDestino, rackOuSlide, urgencia, solicitanteNome } = body;
 
   if (!tipo || !descricaoItem || !localDestino || !urgencia || !solicitanteNome) {
     return NextResponse.json({ erro: "Campos obrigatórios faltando" }, { status: 400 });
@@ -29,6 +43,7 @@ export async function POST(request: NextRequest) {
       tipo,
       descricaoItem: String(descricaoItem).trim(),
       localDestino: String(localDestino).trim(),
+      rackOuSlide: rackOuSlide ? String(rackOuSlide).trim() : null,
       urgencia,
       solicitanteNome: String(solicitanteNome).trim(),
       status: "PENDENTE",

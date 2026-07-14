@@ -15,6 +15,7 @@ model Solicitacao {
   tipo            String   // COMPONENTE_FISICO | CIRCUITO_ELETRONICO
   descricaoItem   String
   localDestino    String
+  rackOuSlide     String?  // localização específica dentro do destino (opcional)
   urgencia        String   // BAIXA | MEDIA | CRITICA
   status          String   @default("PENDENTE") // PENDENTE | EM_CURSO | ENTREGUE | CANCELADA
   solicitanteNome String

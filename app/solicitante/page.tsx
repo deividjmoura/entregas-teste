@@ -9,6 +9,8 @@ import { TIPO_LABELS, URGENCIA_LABELS, type SolicitacaoDTO } from "@/lib/domain"
 import { useAuthUser } from "@/lib/use-auth-user";
 import { auth } from "@/lib/firebase";
 
+const HISTORICO_LIMITE = 5;
+
 export default function SolicitantePage() {
   const router = useRouter();
   const user = useAuthUser();
@@ -16,10 +18,12 @@ export default function SolicitantePage() {
   const [minhas, setMinhas] = useState<SolicitacaoDTO[]>([]);
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
+  const [mostrarHistorico, setMostrarHistorico] = useState(false);
 
   const [tipo, setTipo] = useState("COMPONENTE_FISICO");
   const [descricaoItem, setDescricaoItem] = useState("");
   const [localDestino, setLocalDestino] = useState("");
+  const [rackOuSlide, setRackOuSlide] = useState("");
   const [urgencia, setUrgencia] = useState("MEDIA");
 
   async function sair() {
@@ -48,7 +52,14 @@ export default function SolicitantePage() {
       const res = await fetch("/api/solicitacoes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tipo, descricaoItem, localDestino, urgencia, solicitanteNome: nome }),
+        body: JSON.stringify({
+          tipo,
+          descricaoItem,
+          localDestino,
+          rackOuSlide: rackOuSlide || undefined,
+          urgencia,
+          solicitanteNome: nome,
+        }),
       });
       if (!res.ok) {
         const data = await res.json();
@@ -57,6 +68,7 @@ export default function SolicitantePage() {
       }
       setDescricaoItem("");
       setLocalDestino("");
+      setRackOuSlide("");
       setUrgencia("MEDIA");
       await carregar(nome);
     } finally {
@@ -64,7 +76,28 @@ export default function SolicitantePage() {
     }
   }
 
+  async function alterarUrgencia(id: string, novaUrgencia: string) {
+    if (!nome) return;
+    const res = await fetch(`/api/solicitacoes/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ urgencia: novaUrgencia }),
+    });
+    if (res.ok) await carregar(nome);
+  }
+
+  async function remover(id: string) {
+    if (!nome) return;
+    if (!confirm("Remover esta solicitação? Ela será marcada como cancelada.")) return;
+    const res = await fetch(`/api/solicitacoes/${id}`, { method: "DELETE" });
+    if (res.ok) await carregar(nome);
+  }
+
   if (!nome) return null;
+
+  const ativas = minhas.filter((s) => s.status === "PENDENTE" || s.status === "EM_CURSO");
+  const concluidas = minhas.filter((s) => s.status === "ENTREGUE" || s.status === "CANCELADA");
+  const concluidasVisiveis = concluidas.slice(0, HISTORICO_LIMITE);
 
   return (
     <main className="mx-auto max-w-2xl px-6 py-10">
@@ -73,12 +106,20 @@ export default function SolicitantePage() {
           <div className="font-mono text-xs uppercase tracking-[0.2em] text-dim">solicitante</div>
           <h1 className="font-display text-2xl font-semibold text-ink">Olá, {nome}</h1>
         </div>
-        <button
-          onClick={sair}
-          className="font-mono text-xs text-dim underline decoration-dotted hover:text-ink"
-        >
-          sair
-        </button>
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => router.push("/painel")}
+            className="font-mono text-xs text-dim underline decoration-dotted hover:text-ink"
+          >
+            painel geral
+          </button>
+          <button
+            onClick={sair}
+            className="font-mono text-xs text-dim underline decoration-dotted hover:text-ink"
+          >
+            sair
+          </button>
+        </div>
       </header>
 
       <form onSubmit={abrirSolicitacao} className="mb-10 rounded-lg border border-panel-border bg-panel p-5">
@@ -114,7 +155,9 @@ export default function SolicitantePage() {
         </div>
 
         <div className="mb-4">
-          <label className="mb-1 block font-mono text-[11px] uppercase text-dim">Item</label>
+          <label className="mb-1 block font-mono text-[11px] uppercase text-dim">
+            Item <span className="text-critical">*</span>
+          </label>
           <input
             value={descricaoItem}
             onChange={(e) => setDescricaoItem(e.target.value)}
@@ -124,15 +167,30 @@ export default function SolicitantePage() {
           />
         </div>
 
-        <div className="mb-5">
-          <label className="mb-1 block font-mono text-[11px] uppercase text-dim">Local de destino</label>
-          <input
-            value={localDestino}
-            onChange={(e) => setLocalDestino(e.target.value)}
-            placeholder="ex: Linha de montagem 3"
-            required
-            className="w-full rounded border border-panel-border bg-bg px-3 py-2 text-sm text-ink placeholder:text-dim/60"
-          />
+        <div className="mb-4 grid grid-cols-2 gap-3">
+          <div>
+            <label className="mb-1 block font-mono text-[11px] uppercase text-dim">
+              Local de destino <span className="text-critical">*</span>
+            </label>
+            <input
+              value={localDestino}
+              onChange={(e) => setLocalDestino(e.target.value)}
+              placeholder="ex: Linha de montagem 3"
+              required
+              className="w-full rounded border border-panel-border bg-bg px-3 py-2 text-sm text-ink placeholder:text-dim/60"
+            />
+          </div>
+          <div>
+            <label className="mb-1 block font-mono text-[11px] uppercase text-dim">
+              Rack / Slide <span className="text-dim">(opcional)</span>
+            </label>
+            <input
+              value={rackOuSlide}
+              onChange={(e) => setRackOuSlide(e.target.value)}
+              placeholder="ex: Rack A3 / Slide 12"
+              className="w-full rounded border border-panel-border bg-bg px-3 py-2 text-sm text-ink placeholder:text-dim/60"
+            />
+          </div>
         </div>
 
         {erro && <p className="mb-3 text-sm text-critical">{erro}</p>}
@@ -146,35 +204,94 @@ export default function SolicitantePage() {
         </button>
       </form>
 
-      <section>
+      <section className="mb-8">
         <h2 className="mb-3 font-display text-sm font-semibold uppercase tracking-wide text-dim">
-          Suas solicitações
+          Em andamento ({ativas.length})
         </h2>
-        {minhas.length === 0 && (
-          <p className="text-sm text-dim">Nenhuma solicitação ainda.</p>
+        {ativas.length === 0 && (
+          <p className="text-sm text-dim">Nenhuma solicitação em andamento.</p>
         )}
         <div className="space-y-2">
-          {minhas.map((s) => (
+          {ativas.map((s) => (
             <div
               key={s.id}
-              className="flex items-center justify-between rounded border border-panel-border bg-panel px-4 py-3"
+              className="rounded border border-panel-border bg-panel px-4 py-3"
             >
-              <div>
-                <div className="text-sm text-ink">{s.descricaoItem}</div>
-                <div className="font-mono text-[11px] text-dim">
-                  {s.localDestino} · {URGENCIA_LABELS[s.urgencia]}
-                  {s.entregadorNome ? ` · ${s.entregadorNome}` : ""}
+              <div className="mb-2 flex items-center justify-between">
+                <div>
+                  <div className="text-sm text-ink">{s.descricaoItem}</div>
+                  <div className="font-mono text-[11px] text-dim">
+                    {s.localDestino}{s.rackOuSlide ? ` (${s.rackOuSlide})` : ""}
+                    {s.entregadorNome ? ` · ${s.entregadorNome}` : ""}
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  {s.status === "PENDENTE" && (
+                    <ElapsedTime since={s.criadaEm} alertAfterMinutes={5} className="font-mono text-[11px] text-dim" />
+                  )}
+                  <StatusBadge status={s.status} />
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                {s.status === "PENDENTE" && (
-                  <ElapsedTime since={s.criadaEm} alertAfterMinutes={5} className="font-mono text-[11px] text-dim" />
-                )}
-                <StatusBadge status={s.status} />
+              <div className="flex items-center justify-between gap-3 border-t border-panel-border pt-2">
+                <select
+                  value={s.urgencia}
+                  onChange={(e) => alterarUrgencia(s.id, e.target.value)}
+                  className="rounded border border-panel-border bg-bg px-2 py-1 font-mono text-[11px] text-ink"
+                  title="Alterar urgência"
+                >
+                  {Object.entries(URGENCIA_LABELS).map(([k, v]) => (
+                    <option key={k} value={k}>{v}</option>
+                  ))}
+                </select>
+                <button
+                  onClick={() => remover(s.id)}
+                  className="font-mono text-[11px] text-critical underline decoration-dotted hover:text-critical/80"
+                >
+                  remover
+                </button>
               </div>
             </div>
           ))}
         </div>
+      </section>
+
+      <section>
+        <button
+          onClick={() => setMostrarHistorico((v) => !v)}
+          className="mb-3 flex items-center gap-2 font-display text-sm font-semibold uppercase tracking-wide text-dim hover:text-ink"
+        >
+          {mostrarHistorico ? "▾" : "▸"} Histórico ({concluidas.length})
+        </button>
+
+        {mostrarHistorico && (
+          <>
+            <div className="space-y-2">
+              {concluidasVisiveis.map((s) => (
+                <div
+                  key={s.id}
+                  className="flex items-center justify-between rounded border border-panel-border bg-panel px-4 py-3 opacity-70"
+                >
+                  <div>
+                    <div className="text-sm text-ink">{s.descricaoItem}</div>
+                    <div className="font-mono text-[11px] text-dim">
+                      {s.localDestino}{s.rackOuSlide ? ` (${s.rackOuSlide})` : ""}
+                      {s.entregadorNome ? ` · ${s.entregadorNome}` : ""}
+                    </div>
+                  </div>
+                  <StatusBadge status={s.status} />
+                </div>
+              ))}
+            </div>
+            {concluidas.length > HISTORICO_LIMITE && (
+              <p className="mt-3 text-center font-mono text-[11px] text-dim">
+                mostrando {HISTORICO_LIMITE} de {concluidas.length} —{" "}
+                <button onClick={() => router.push("/painel")} className="underline decoration-dotted hover:text-ink">
+                  ver tudo no painel
+                </button>
+              </p>
+            )}
+          </>
+        )}
       </section>
     </main>
   );
