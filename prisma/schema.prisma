@@ -7,23 +7,28 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Modelo único e simplificado para o demo. Sem tabela de usuário —
-// nome e perfil são só texto livre por enquanto (auth real fica pra
-// depois, ver README-DEPLOY.md).
 model Solicitacao {
-  id              String   @id @default(uuid())
-  tipo            String   // COMPONENTE_FISICO | CIRCUITO_ELETRONICO
+  id              String    @id @default(uuid())
+  tipo            String
   descricaoItem   String
   localDestino    String
-  rackOuSlide     String?  // localização específica dentro do destino (opcional)
-  foto            String?  @db.Text // foto tirada na hora, base64 (opcional)
-  urgencia        String   // BAIXA | MEDIA | CRITICA
-  status          String   @default("PENDENTE") // PENDENTE | EM_CURSO | ENTREGUE | CANCELADA
+  rackOuSlide     String?
+  foto            String?   @db.Text
+  urgencia        String
+  status          String    @default("PENDENTE")
   solicitanteNome String
   entregadorNome  String?
-  versao          Int      @default(1)
-  criadaEm        DateTime @default(now())
-  atualizadaEm    DateTime @updatedAt
+  versao          Int       @default(1)
+  criadaEm        DateTime  @default(now())
+  atualizadaEm    DateTime  @updatedAt
+  entregueEm      DateTime? // marcado só quando status vira ENTREGUE — usado pra medir tempo de despacho
 
   @@index([status, urgencia])
+}
+
+// Contador simples de "usuários online" pro banner de demo — cada aba manda
+// heartbeat a cada 5s, e consideramos online quem bateu nos últimos 15s.
+model Presenca {
+  sessionId    String   @id
+  atualizadaEm DateTime @updatedAt
 }

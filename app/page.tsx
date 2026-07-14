@@ -70,6 +70,12 @@ export default function Home() {
             </button>
           </div>
         </div>
+        <button
+            onClick={() => router.push("/painel")}
+            className="mt-4 w-full text-center font-mono text-xs text-dim underline decoration-dotted hover:text-ink"
+          >
+            Ver fila de solicitações sem login →
+            </button>
         <p className="mt-6 text-center font-mono text-[11px] text-dim">Autenticado via Google — nenhuma senha própria armazenada<br></br>Feito com muito ☕ e ❤️ por&nbsp;
           <a href="https://deividmoura.netlify.app/" target="_blank" rel="noopener noreferrer" className="hover:underline hover:text-white transition-colors">Deivid Moura</a>
         </p>

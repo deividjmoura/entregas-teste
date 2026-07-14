@@ -5,15 +5,16 @@ import { useRouter } from "next/navigation";
 import { StatusBadge } from "@/components/status-badge";
 import { ElapsedTime } from "@/components/elapsed-time";
 import { ImageLightbox } from "@/components/image-lightbox";
-import { TIPO_LABELS, URGENCIA_LABELS, type SolicitacaoDTO } from "@/lib/domain";
-import { useAuthUser } from "@/lib/use-auth-user";
+import { OnlineBanner } from "@/components/online-banner";
+import { SkeletonList, EmptyState } from "@/components/skeleton";
+import { TIPO_LABELS, URGENCIA_LABELS, formatarHora, formatarDuracao, type SolicitacaoDTO } from "@/lib/domain";
 
 export default function PainelPage() {
   const router = useRouter();
-  const user = useAuthUser();
   const [busca, setBusca] = useState("");
   const [resultados, setResultados] = useState<SolicitacaoDTO[]>([]);
   const [carregando, setCarregando] = useState(false);
+  const [carregouUmaVez, setCarregouUmaVez] = useState(false);
   const [fotoAmpliada, setFotoAmpliada] = useState<string | null>(null);
 
   const buscar = useCallback(async (termo: string) => {
@@ -25,6 +26,7 @@ export default function PainelPage() {
       if (res.ok) setResultados(await res.json());
     } finally {
       setCarregando(false);
+      setCarregouUmaVez(true);
     }
   }, []);
 
@@ -34,22 +36,25 @@ export default function PainelPage() {
     return () => clearTimeout(timeout);
   }, [busca, buscar]);
 
-  if (user === undefined) return null;
+  // Sem gate de autenticação de propósito: essa tela é o painel público
+  // de acompanhamento de fila (ex: TV no estoque), não precisa de login.
 
   return (
     <main className="mx-auto flex h-screen max-w-3xl flex-col overflow-hidden px-6">
-      <header className="mb-8 mt-10 flex shrink-0 items-center justify-between">
+      <header className="mb-6 mt-10 flex shrink-0 items-center justify-between">
         <div>
           <div className="font-mono text-xs uppercase tracking-[0.2em] text-dim">consulta geral</div>
           <h1 className="font-display text-2xl font-semibold text-ink">Painel de solicitações</h1>
         </div>
         <button
-          onClick={() => router.back()}
+          onClick={() => router.push("/")}
           className="font-mono text-xs text-dim underline decoration-dotted hover:text-ink"
         >
-          voltar
+          início
         </button>
       </header>
+
+      <OnlineBanner />
 
       <div className="mb-6 shrink-0">
         <input
@@ -61,59 +66,74 @@ export default function PainelPage() {
         />
       </div>
 
-      {carregando && <p className="mb-3 shrink-0 font-mono text-[11px] text-dim">buscando...</p>}
+      <div className="scroll-area min-h-0 flex-1 overflow-y-auto pb-10 pr-1">
+        {!carregouUmaVez && carregando && <SkeletonList count={6} />}
 
-      {!carregando && resultados.length === 0 && (
-        <p className="shrink-0 rounded border border-panel-border bg-panel px-4 py-6 text-center text-sm text-dim">
-          Nenhuma solicitação encontrada.
-        </p>
-      )}
+        {carregouUmaVez && !carregando && resultados.length === 0 && (
+          <EmptyState
+            icon="🔍"
+            title="Nenhuma solicitação encontrada"
+            subtitle={busca ? "Tente outro termo de busca" : "Ainda não há solicitações registradas"}
+          />
+        )}
 
-      <div className="scroll-area min-h-0 flex-1 space-y-2 overflow-y-auto pb-10 pr-1">
-        {resultados.map((s) => (
-          <div
-            key={s.id}
-            className="rounded border border-panel-border bg-panel px-4 py-3"
-          >
-            <div className="mb-1 flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                {s.foto && (
-                  <button
-                    type="button"
-                    onClick={() => setFotoAmpliada(s.foto)}
-                    className="flex h-6 w-6 shrink-0 items-center justify-center rounded bg-bg text-xs transition hover:bg-progress/20"
-                    title="Ver foto"
-                  >
-                    📷
-                  </button>
-                )}
-                <span className="text-sm text-ink">{s.descricaoItem}</span>
+        {resultados.length > 0 && (
+          <div className="space-y-2">
+            {resultados.map((s) => (
+              <div key={s.id} className="rounded border border-panel-border bg-panel px-4 py-3">
+                <div className="mb-1 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    {s.foto && (
+                      <button
+                        type="button"
+                        onClick={() => setFotoAmpliada(s.foto)}
+                        className="flex h-6 w-6 shrink-0 items-center justify-center rounded bg-bg text-xs transition hover:bg-progress/20"
+                        title="Ver foto"
+                      >
+                        📷
+                      </button>
+                    )}
+                    <span className="text-sm text-ink">{s.descricaoItem}</span>
+                  </div>
+                  <StatusBadge status={s.status} />
+                </div>
+                <div className="flex flex-wrap items-center gap-x-2 font-mono text-[11px] text-dim">
+                  <span>{TIPO_LABELS[s.tipo]}</span>
+                  <span>·</span>
+                  <span>{s.localDestino}{s.rackOuSlide ? ` (${s.rackOuSlide})` : ""}</span>
+                  <span>·</span>
+                  <span>{URGENCIA_LABELS[s.urgencia]}</span>
+                  <span>·</span>
+                  <span>solicitado por {s.solicitanteNome}</span>
+                  {s.entregadorNome && (
+                    <>
+                      <span>·</span>
+                      <span>entregador: {s.entregadorNome}</span>
+                    </>
+                  )}
+                  <span>·</span>
+                  <span>aberto às {formatarHora(s.criadaEm)}</span>
+                  {s.status === "PENDENTE" && (
+                    <>
+                      <span>·</span>
+                      <ElapsedTime since={s.criadaEm} alertAfterMinutes={5} />
+                    </>
+                  )}
+                  {s.status === "ENTREGUE" && s.entregueEm && (
+                    <>
+                      <span>·</span>
+                      <span>entregue às {formatarHora(s.entregueEm)}</span>
+                      <span>·</span>
+                      <span className="text-success">
+                        levou {formatarDuracao(new Date(s.entregueEm).getTime() - new Date(s.criadaEm).getTime())}
+                      </span>
+                    </>
+                  )}
+                </div>
               </div>
-              <StatusBadge status={s.status} />
-            </div>
-            <div className="flex flex-wrap items-center gap-x-2 font-mono text-[11px] text-dim">
-              <span>{TIPO_LABELS[s.tipo]}</span>
-              <span>·</span>
-              <span>{s.localDestino}{s.rackOuSlide ? ` (${s.rackOuSlide})` : ""}</span>
-              <span>·</span>
-              <span>{URGENCIA_LABELS[s.urgencia]}</span>
-              <span>·</span>
-              <span>solicitado por {s.solicitanteNome}</span>
-              {s.entregadorNome && (
-                <>
-                  <span>·</span>
-                  <span>entregador: {s.entregadorNome}</span>
-                </>
-              )}
-              {s.status === "PENDENTE" && (
-                <>
-                  <span>·</span>
-                  <ElapsedTime since={s.criadaEm} alertAfterMinutes={5} />
-                </>
-              )}
-            </div>
+            ))}
           </div>
-        ))}
+        )}
       </div>
 
       <ImageLightbox src={fotoAmpliada} onClose={() => setFotoAmpliada(null)} />

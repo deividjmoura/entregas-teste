@@ -9,7 +9,6 @@ export const URGENCIA_LABELS: Record<string, string> = {
   CRITICA: "Crítica",
 };
 
-// Usado pra ordenar a fila por urgência (maior peso primeiro)
 export const URGENCIA_PESO: Record<string, number> = {
   CRITICA: 3,
   MEDIA: 2,
@@ -36,4 +35,17 @@ export interface SolicitacaoDTO {
   entregadorNome: string | null;
   criadaEm: string;
   atualizadaEm: string;
+  entregueEm: string | null;
+}
+
+export function formatarHora(iso: string): string {
+  return new Date(iso).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+}
+
+export function formatarDuracao(ms: number): string {
+  const minutos = Math.max(0, Math.round(ms / 60000));
+  if (minutos < 60) return `${minutos}min`;
+  const horas = Math.floor(minutos / 60);
+  const resto = minutos % 60;
+  return `${horas}h${resto > 0 ? ` ${resto}min` : ""}`;
 }

@@ -7,7 +7,7 @@ export async function POST(
 ) {
   const resultado = await prisma.solicitacao.updateMany({
     where: { id: params.id, status: "EM_CURSO" },
-    data: { status: "ENTREGUE", versao: { increment: 1 } },
+    data: { status: "ENTREGUE", versao: { increment: 1 }, entregueEm: new Date() },
   });
 
   if (resultado.count === 0) {
