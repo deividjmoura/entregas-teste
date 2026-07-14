@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { signOut } from "firebase/auth";
 import { StatusBadge } from "@/components/status-badge";
 import { ElapsedTime } from "@/components/elapsed-time";
+import { ImageLightbox } from "@/components/image-lightbox";
 import { resizeImageToBase64 } from "@/lib/image-utils";
 import { TIPO_LABELS, URGENCIA_LABELS, type SolicitacaoDTO } from "@/lib/domain";
 import { useAuthUser } from "@/lib/use-auth-user";
@@ -28,6 +29,7 @@ export default function SolicitantePage() {
   const [urgencia, setUrgencia] = useState("MEDIA");
   const [foto, setFoto] = useState<string | null>(null);
   const [processandoFoto, setProcessandoFoto] = useState(false);
+  const [fotoAmpliada, setFotoAmpliada] = useState<string | null>(null);
   const inputFotoRef = useRef<HTMLInputElement>(null);
 
   async function sair() {
@@ -288,7 +290,7 @@ export default function SolicitantePage() {
                 <div className="mb-2 flex items-center justify-between gap-3">
                   <div className="flex items-center gap-3">
                     {s.foto && (
-                      <img src={s.foto} alt="" className="h-10 w-10 shrink-0 rounded object-cover" />
+                      <img src={s.foto} alt="" onClick={() => setFotoAmpliada(s.foto)} className="h-10 w-10 shrink-0 cursor-pointer rounded object-cover transition hover:opacity-80" />
                     )}
                     <div>
                       <div className="text-sm text-ink">{s.descricaoItem}</div>
@@ -346,7 +348,7 @@ export default function SolicitantePage() {
                   >
                     <div className="flex items-center gap-3">
                       {s.foto && (
-                        <img src={s.foto} alt="" className="h-10 w-10 shrink-0 rounded object-cover" />
+                        <img src={s.foto} alt="" onClick={() => setFotoAmpliada(s.foto)} className="h-10 w-10 shrink-0 cursor-pointer rounded object-cover transition hover:opacity-80" />
                       )}
                       <div>
                         <div className="text-sm text-ink">{s.descricaoItem}</div>
@@ -372,6 +374,8 @@ export default function SolicitantePage() {
           )}
         </section>
       </div>
+
+      <ImageLightbox src={fotoAmpliada} onClose={() => setFotoAmpliada(null)} />
     </main>
   );
 }

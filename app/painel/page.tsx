@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { StatusBadge } from "@/components/status-badge";
 import { ElapsedTime } from "@/components/elapsed-time";
+import { ImageLightbox } from "@/components/image-lightbox";
 import { TIPO_LABELS, URGENCIA_LABELS, type SolicitacaoDTO } from "@/lib/domain";
 import { useAuthUser } from "@/lib/use-auth-user";
 
@@ -13,6 +14,7 @@ export default function PainelPage() {
   const [busca, setBusca] = useState("");
   const [resultados, setResultados] = useState<SolicitacaoDTO[]>([]);
   const [carregando, setCarregando] = useState(false);
+  const [fotoAmpliada, setFotoAmpliada] = useState<string | null>(null);
 
   const buscar = useCallback(async (termo: string) => {
     setCarregando(true);
@@ -76,7 +78,12 @@ export default function PainelPage() {
             <div className="mb-1 flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
                 {s.foto && (
-                  <img src={s.foto} alt="" className="h-10 w-10 shrink-0 rounded object-cover" />
+                  <img
+                    src={s.foto}
+                    alt=""
+                    onClick={() => setFotoAmpliada(s.foto)}
+                    className="h-10 w-10 shrink-0 cursor-pointer rounded object-cover transition hover:opacity-80"
+                  />
                 )}
                 <span className="text-sm text-ink">{s.descricaoItem}</span>
               </div>
@@ -106,6 +113,8 @@ export default function PainelPage() {
           </div>
         ))}
       </div>
+
+      <ImageLightbox src={fotoAmpliada} onClose={() => setFotoAmpliada(null)} />
     </main>
   );
 }

@@ -6,6 +6,7 @@ import { signOut } from "firebase/auth";
 import { TIPO_LABELS, URGENCIA_LABELS, URGENCIA_PESO, type SolicitacaoDTO } from "@/lib/domain";
 import { UrgencyDot } from "@/components/status-badge";
 import { ElapsedTime } from "@/components/elapsed-time";
+import { ImageLightbox } from "@/components/image-lightbox";
 import { useAuthUser } from "@/lib/use-auth-user";
 import { auth } from "@/lib/firebase";
 
@@ -23,6 +24,7 @@ export default function EntregadorPage() {
   const [minhasEmCurso, setMinhasEmCurso] = useState<SolicitacaoDTO[]>([]);
   const [erro, setErro] = useState<string | null>(null);
   const [assumindo, setAssumindo] = useState<string | null>(null);
+  const [fotoAmpliada, setFotoAmpliada] = useState<string | null>(null);
 
   async function sair() {
     await signOut(auth);
@@ -162,7 +164,12 @@ export default function EntregadorPage() {
               >
                 <UrgencyDot pulse={s.urgencia === "CRITICA"} color={URGENCIA_COR[s.urgencia]} />
                 {s.foto && (
-                  <img src={s.foto} alt="" className="h-8 w-8 shrink-0 rounded object-cover" />
+                  <img
+                    src={s.foto}
+                    alt=""
+                    onClick={() => setFotoAmpliada(s.foto)}
+                    className="h-8 w-8 shrink-0 cursor-pointer rounded object-cover transition hover:opacity-80"
+                  />
                 )}
                 <span
                   className="w-16 shrink-0 text-[11px] uppercase tracking-wide"
@@ -190,6 +197,8 @@ export default function EntregadorPage() {
           </div>
         </section>
       </div>
+
+      <ImageLightbox src={fotoAmpliada} onClose={() => setFotoAmpliada(null)} />
     </main>
   );
 }
