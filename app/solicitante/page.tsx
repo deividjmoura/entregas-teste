@@ -290,7 +290,7 @@ export default function SolicitantePage() {
                 <div className="mb-2 flex items-center justify-between gap-3">
                   <div className="flex items-center gap-3">
                     {s.foto && (
-                      <img src={s.foto} alt="" onClick={() => setFotoAmpliada(s.foto)} className="h-10 w-10 shrink-0 cursor-pointer rounded object-cover transition hover:opacity-80" />
+                      <button type="button" onClick={() => setFotoAmpliada(s.foto)} className="flex h-6 w-6 shrink-0 items-center justify-center rounded bg-bg text-xs transition hover:bg-progress/20" title="Ver foto">📷</button>
                     )}
                     <div>
                       <div className="text-sm text-ink">{s.descricaoItem}</div>
@@ -348,7 +348,7 @@ export default function SolicitantePage() {
                   >
                     <div className="flex items-center gap-3">
                       {s.foto && (
-                        <img src={s.foto} alt="" onClick={() => setFotoAmpliada(s.foto)} className="h-10 w-10 shrink-0 cursor-pointer rounded object-cover transition hover:opacity-80" />
+                        <button type="button" onClick={() => setFotoAmpliada(s.foto)} className="flex h-6 w-6 shrink-0 items-center justify-center rounded bg-bg text-xs transition hover:bg-progress/20" title="Ver foto">📷</button>
                       )}
                       <div>
                         <div className="text-sm text-ink">{s.descricaoItem}</div>

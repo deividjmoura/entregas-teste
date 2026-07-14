@@ -78,12 +78,14 @@ export default function PainelPage() {
             <div className="mb-1 flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
                 {s.foto && (
-                  <img
-                    src={s.foto}
-                    alt=""
+                  <button
+                    type="button"
                     onClick={() => setFotoAmpliada(s.foto)}
-                    className="h-10 w-10 shrink-0 cursor-pointer rounded object-cover transition hover:opacity-80"
-                  />
+                    className="flex h-6 w-6 shrink-0 items-center justify-center rounded bg-bg text-xs transition hover:bg-progress/20"
+                    title="Ver foto"
+                  >
+                    📷
+                  </button>
                 )}
                 <span className="text-sm text-ink">{s.descricaoItem}</span>
               </div>

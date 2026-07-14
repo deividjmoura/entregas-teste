@@ -164,12 +164,14 @@ export default function EntregadorPage() {
               >
                 <UrgencyDot pulse={s.urgencia === "CRITICA"} color={URGENCIA_COR[s.urgencia]} />
                 {s.foto && (
-                  <img
-                    src={s.foto}
-                    alt=""
+                  <button
+                    type="button"
                     onClick={() => setFotoAmpliada(s.foto)}
-                    className="h-8 w-8 shrink-0 cursor-pointer rounded object-cover transition hover:opacity-80"
-                  />
+                    className="flex h-6 w-6 shrink-0 items-center justify-center rounded bg-bg text-xs transition hover:bg-progress/20"
+                    title="Ver foto"
+                  >
+                    📷
+                  </button>
                 )}
                 <span
                   className="w-16 shrink-0 text-[11px] uppercase tracking-wide"
