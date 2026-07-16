@@ -2,20 +2,36 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { signOut } from "firebase/auth";
 import { StatusBadge } from "@/components/status-badge";
 import { ElapsedTime } from "@/components/elapsed-time";
 import { ImageLightbox } from "@/components/image-lightbox";
 import { OnlineBanner } from "@/components/online-banner";
 import { SkeletonList, EmptyState } from "@/components/skeleton";
 import { TIPO_LABELS, URGENCIA_LABELS, formatarHora, formatarDuracao, type SolicitacaoDTO } from "@/lib/domain";
+import { useOptionalAuthUser } from "@/lib/use-optional-auth-user";
+import { auth } from "@/lib/firebase";
 
 export default function PainelPage() {
   const router = useRouter();
+  const user = useOptionalAuthUser(); // undefined = carregando, null = visitante, User = logado
+  const [perfil, setPerfil] = useState<string | null>(null);
   const [busca, setBusca] = useState("");
   const [resultados, setResultados] = useState<SolicitacaoDTO[]>([]);
   const [carregando, setCarregando] = useState(false);
   const [carregouUmaVez, setCarregouUmaVez] = useState(false);
   const [fotoAmpliada, setFotoAmpliada] = useState<string | null>(null);
+
+  // Perfil (solicitante/entregador) só existe no localStorage se a pessoa
+  // já passou pela tela de login — usado pro botão "voltar" saber pra onde ir.
+  useEffect(() => {
+    setPerfil(localStorage.getItem("entregas:perfil"));
+  }, []);
+
+  async function sair() {
+    await signOut(auth);
+    router.push("/");
+  }
 
   const buscar = useCallback(async (termo: string) => {
     setCarregando(true);
@@ -30,14 +46,10 @@ export default function PainelPage() {
     }
   }, []);
 
-  // Busca inicial (sem filtro, mostra as mais recentes) + debounce ao digitar
   useEffect(() => {
     const timeout = setTimeout(() => buscar(busca), 350);
     return () => clearTimeout(timeout);
   }, [busca, buscar]);
-
-  // Sem gate de autenticação de propósito: essa tela é o painel público
-  // de acompanhamento de fila (ex: TV no estoque), não precisa de login.
 
   return (
     <main className="mx-auto flex h-screen max-w-3xl flex-col overflow-hidden px-6">
@@ -46,12 +58,31 @@ export default function PainelPage() {
           <div className="font-mono text-xs uppercase tracking-[0.2em] text-dim">consulta geral</div>
           <h1 className="font-display text-2xl font-semibold text-ink">Painel de solicitações</h1>
         </div>
-        <button
-          onClick={() => router.push("/")}
-          className="font-mono text-xs text-dim underline decoration-dotted hover:text-ink"
-        >
-          início
-        </button>
+        <div className="flex items-center gap-4">
+          {user && perfil && (
+            <button
+              onClick={() => router.push(`/${perfil}`)}
+              className="font-mono text-xs text-dim underline decoration-dotted hover:text-ink"
+            >
+              voltar
+            </button>
+          )}
+          {user ? (
+            <button
+              onClick={sair}
+              className="font-mono text-xs text-dim underline decoration-dotted hover:text-ink"
+            >
+              sair
+            </button>
+          ) : (
+            <button
+              onClick={() => router.push("/")}
+              className="font-mono text-xs text-dim underline decoration-dotted hover:text-ink"
+            >
+              início
+            </button>
+          )}
+        </div>
       </header>
 
       <OnlineBanner />

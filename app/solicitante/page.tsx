@@ -7,7 +7,7 @@ import { StatusBadge } from "@/components/status-badge";
 import { ElapsedTime } from "@/components/elapsed-time";
 import { ImageLightbox } from "@/components/image-lightbox";
 import { resizeImageToBase64 } from "@/lib/image-utils";
-import { TIPO_LABELS, URGENCIA_LABELS, type SolicitacaoDTO } from "@/lib/domain";
+import { TIPO_LABELS, URGENCIA_LABELS, formatarHora, formatarDuracao, type SolicitacaoDTO } from "@/lib/domain";
 import { useAuthUser } from "@/lib/use-auth-user";
 import { auth } from "@/lib/firebase";
 
@@ -295,8 +295,9 @@ export default function SolicitantePage() {
                     <div>
                       <div className="text-sm text-ink">{s.descricaoItem}</div>
                       <div className="font-mono text-[11px] text-dim">
-                        {s.localDestino}{s.rackOuSlide ? ` (${s.rackOuSlide})` : ""}
-                        {s.entregadorNome ? ` · ${s.entregadorNome}` : ""}
+                      {s.localDestino}{s.rackOuSlide ? ` (${s.rackOuSlide})` : ""} · {TIPO_LABELS[s.tipo]}
+                      {s.entregadorNome ? ` · ${s.entregadorNome}` : ""}
+                      {" · aberto às "}{formatarHora(s.criadaEm)}
                       </div>
                     </div>
                   </div>
@@ -353,8 +354,13 @@ export default function SolicitantePage() {
                       <div>
                         <div className="text-sm text-ink">{s.descricaoItem}</div>
                         <div className="font-mono text-[11px] text-dim">
-                          {s.localDestino}{s.rackOuSlide ? ` (${s.rackOuSlide})` : ""}
+                          {s.localDestino}{s.rackOuSlide ? ` (${s.rackOuSlide})` : ""} · {TIPO_LABELS[s.tipo]}
                           {s.entregadorNome ? ` · ${s.entregadorNome}` : ""}
+                          {s.status === "ENTREGUE" && s.entregueEm ? (
+                            <> · entregue às {formatarHora(s.entregueEm)} · {formatarDuracao(new Date(s.entregueEm).getTime() - new Date(s.criadaEm).getTime())}</>
+                          ) : (
+                            <> · aberto às {formatarHora(s.criadaEm)}</>
+                          )}
                         </div>
                       </div>
                     </div>

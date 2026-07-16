@@ -122,18 +122,43 @@ export default function EntregadorPage() {
               {minhasProprias.map((s) => (
                 <div
                   key={s.id}
-                  className="flex items-center justify-between rounded border border-progress/40 bg-progress/10 px-4 py-3"
+                  className="rounded border border-progress/40 bg-progress/10 px-4 py-3"
                 >
-                  <div>
-                    <div className="text-sm text-ink">{s.descricaoItem}</div>
-                    <div className="font-mono text-[11px] text-dim">{s.localDestino}</div>
+                  <div className="mb-2 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      {s.foto && (
+                        <button
+                          type="button"
+                          onClick={() => setFotoAmpliada(s.foto)}
+                          className="flex h-6 w-6 shrink-0 items-center justify-center rounded bg-bg text-xs transition hover:bg-progress/20"
+                          title="Ver foto"
+                        >
+                          📷
+                        </button>
+                      )}
+                      <div>
+                        <div className="text-sm text-ink">{s.descricaoItem}</div>
+                        <div className="flex items-center gap-1.5 font-mono text-[11px] text-dim">
+                          <UrgencyDot color={URGENCIA_COR[s.urgencia]} />
+                          <span style={{ color: URGENCIA_COR[s.urgencia] }}>{URGENCIA_LABELS[s.urgencia]}</span>
+                          <span>· {TIPO_LABELS[s.tipo]}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => confirmar(s.id)}
+                      className="shrink-0 rounded bg-success px-3 py-1.5 font-display text-xs font-semibold text-bg hover:brightness-110"
+                    >
+                      Confirmar entrega
+                    </button>
                   </div>
-                  <button
-                    onClick={() => confirmar(s.id)}
-                    className="rounded bg-success px-3 py-1.5 font-display text-xs font-semibold text-bg hover:brightness-110"
-                  >
-                    Confirmar entrega
-                  </button>
+                  <div className="flex flex-wrap items-center gap-x-2 border-t border-panel-border/50 pt-2 font-mono text-[11px] text-dim">
+                    <span>→ {s.localDestino}{s.rackOuSlide ? ` (${s.rackOuSlide})` : ""}</span>
+                    <span>·</span>
+                    <span>solicitado por {s.solicitanteNome}</span>
+                    <span>·</span>
+                    <ElapsedTime since={s.criadaEm} alertAfterMinutes={5} />
+                  </div>
                 </div>
               ))}
             </div>
@@ -181,7 +206,7 @@ export default function EntregadorPage() {
                 </span>
                 <span className="flex-1 truncate text-ink">{s.descricaoItem}</span>
                 <span className="hidden shrink-0 text-dim sm:inline">{TIPO_LABELS[s.tipo]}</span>
-                <span className="shrink-0 text-dim">→ {s.localDestino}</span>
+                <span className="shrink-0 text-dim">→ {s.localDestino}{s.rackOuSlide ? ` (${s.rackOuSlide})` : ""}</span>
                 <ElapsedTime
                   since={s.criadaEm}
                   alertAfterMinutes={5}
