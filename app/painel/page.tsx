@@ -134,7 +134,7 @@ export default function PainelPage() {
   );
 
   return (
-    <main className="mx-auto flex h-screen max-w-4xl flex-col overflow-hidden px-6">
+    <main className="mx-auto flex h-screen w-full max-w-[1800px] flex-col overflow-hidden px-6">
       <header className="mb-6 mt-10 flex shrink-0 items-center justify-between">
         <div>
           <div className="font-mono text-xs uppercase tracking-[0.2em] text-dim">dashboard</div>
@@ -168,13 +168,13 @@ export default function PainelPage() {
 
       <div className="scroll-area min-h-0 flex-1 overflow-y-auto pb-10 pr-1">
         {/* Resumo do dia */}
-        <div className="mb-6 grid shrink-0 grid-cols-2 gap-3">
-          <div className="rounded border border-panel-border bg-panel px-4 py-3">
-            <div className="font-mono text-[11px] uppercase tracking-wide text-dim">entregas hoje</div>
-            <div className="font-display text-2xl font-semibold text-success">{entreguesRecentes.length}</div>
-          </div>
-          <div className="rounded border border-panel-border bg-panel px-4 py-3">
-            <div className="mb-1.5 font-mono text-[11px] uppercase tracking-wide text-dim">rotas atendidas hoje</div>
+        <div className="mb-4 grid shrink-0 grid-cols-2 gap-2">
+  <div className="rounded border border-panel-border bg-panel px-3 py-2">
+    <div className="font-mono text-[10px] uppercase tracking-wide text-dim">entregas hoje</div>
+    <div className="font-display text-lg font-semibold text-success">{entreguesRecentes.length}</div>
+  </div>
+  <div className="rounded border border-panel-border bg-panel px-3 py-2">
+    <div className="mb-1 font-mono text-[10px] uppercase tracking-wide text-dim">rotas atendidas hoje</div>
             <div className="flex flex-wrap gap-1">
               {rotasHoje.length === 0 && <span className="font-mono text-xs text-dim">—</span>}
               {rotasHoje.map((r) => (
@@ -320,7 +320,7 @@ export default function PainelPage() {
             )}
 
             {!carregandoDashboard && grupos.length > 0 && (
-              <div className="space-y-3">
+              <div className="grid grid-cols-1 items-start gap-3 sm:grid-cols-2 xl:grid-cols-3">
                 {grupos.map(({ local, lista, temLinhaParada }) => (
                   <LocationCard
                     key={local}
