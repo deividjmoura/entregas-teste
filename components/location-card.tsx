@@ -93,7 +93,7 @@ export function LocationCard({ local, contagem, temLinhaParada, children }: Loca
       </button>
 
       {pronto && aberto && (
-  <div className="h-[240px] space-y-2 overflow-y-auto border-t border-panel-border/50 px-4 py-3">
+  <div className="scroll-area h-[240px] space-y-2 overflow-y-auto border-t border-panel-border/50 px-4 py-3">
     {children}
   </div>
 )}
