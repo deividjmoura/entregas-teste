@@ -137,14 +137,19 @@ export default function SolicitantePage() {
   }
 
   async function alterarUrgencia(id: string, novaUrgencia: string) {
-    if (!nome) return;
-    const res = await fetch(`/api/solicitacoes/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ urgencia: novaUrgencia }),
-    });
-    if (res.ok) await carregar(nome);
+  if (!nome) return;
+  const res = await fetch(`/api/solicitacoes/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ urgencia: novaUrgencia }),
+  });
+  if (res.ok) {
+    await carregar(nome);
+  } else {
+    const data = await res.json();
+    setErro(data.erro ?? "Falha ao alterar urgência");
   }
+}
 
   async function remover(id: string) {
     if (!nome) return;

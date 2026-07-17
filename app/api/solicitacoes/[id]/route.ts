@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-const URGENCIAS_VALIDAS = ["BAIXA", "MEDIA", "CRITICA"];
+const URGENCIAS_VALIDAS = ["BAIXA", "MEDIA", "CRITICA", "LINHA_PARADA"];
 
 /**
  * Só permite editar a urgência enquanto a solicitação ainda não foi
