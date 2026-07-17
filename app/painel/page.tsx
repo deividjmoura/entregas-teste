@@ -141,6 +141,7 @@ export default function PainelPage() {
           <h1 className="font-display text-2xl font-semibold text-ink">Painel de despacho</h1>
         </div>
         <div className="flex items-center gap-4">
+          <OnlineBanner />
           {user && perfil && (
             <button
               onClick={() => router.push(`/${perfil}`)}
@@ -164,7 +165,7 @@ export default function PainelPage() {
         </div>
       </header>
 
-      <OnlineBanner />
+      
 
       <div className="scroll-area min-h-0 flex-1 overflow-y-auto pb-10 pr-1">
         {/* Resumo do dia */}

@@ -153,73 +153,74 @@ export default function EntregadorPage() {
           </section>
         )}
 
-        <section>
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="font-display text-sm font-semibold uppercase tracking-wide text-dim">Fila de despacho</h2>
-            <span className="font-mono text-[11px] text-dim">{pendentes.length} pendente(s)</span>
-          </div>
+      <section>
+  <div className="mb-3 flex items-center justify-between">
+    <h2 className="font-display text-sm font-semibold uppercase tracking-wide text-dim">Fila de despacho</h2>
+    <span className="font-mono text-[11px] text-dim">{pendentes.length} pendente(s)</span>
+  </div>
 
-          {pendentes.length === 0 && (
-            <p className="rounded border border-panel-border bg-panel px-4 py-6 text-center text-sm text-dim">
-              Nenhuma urgência pendente no momento.
-            </p>
-          )}
+  {pendentes.length === 0 && (
+    <p className="rounded border border-panel-border bg-panel px-4 py-6 text-center text-sm text-dim">
+      Nenhuma urgência pendente no momento.
+    </p>
+  )}
 
-          <div className="overflow-hidden rounded-lg border border-panel-border">
-            {pendentes.map((s, i) => (
-              <div
-                key={s.id}
-                className={`flex items-center gap-4 px-4 py-3 font-mono text-sm ${
-                  i % 2 === 0 ? "bg-panel" : "bg-bg"
-                } ${
-                  s.urgencia === "LINHA_PARADA"
-                    ? "border-l-2 border-parada"
-                    : s.urgencia === "CRITICA"
-                      ? "border-l-2 border-critical"
-                      : "border-l-2 border-transparent"
-                }`}
+  <div className="space-y-2">
+    {pendentes.map((s) => (
+      <div
+        key={s.id}
+        className={`rounded border bg-panel px-4 py-3 ${
+          s.urgencia === "LINHA_PARADA"
+            ? "border-parada/40"
+            : s.urgencia === "CRITICA"
+              ? "border-critical/40"
+              : "border-panel-border"
+        }`}
+      >
+        <div className="mb-2 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            {s.foto && (
+              <button
+                type="button"
+                onClick={() => setFotoAmpliada(s.foto)}
+                className="flex h-6 w-6 shrink-0 items-center justify-center rounded bg-bg text-xs hover:bg-progress/20"
+                title="Ver foto"
               >
+                📷
+              </button>
+            )}
+            <div>
+              <div className="text-sm text-ink">{s.descricaoItem}</div>
+              <div className="flex items-center gap-1.5 font-mono text-[11px] text-dim">
                 <UrgencyDot
                   pulse={s.urgencia === "CRITICA" || s.urgencia === "LINHA_PARADA"}
                   color={URGENCIA_COR[s.urgencia]}
                 />
-                {s.foto && (
-                  <button
-                    type="button"
-                    onClick={() => setFotoAmpliada(s.foto)}
-                    className="flex h-6 w-6 shrink-0 items-center justify-center rounded bg-bg text-xs hover:bg-progress/20"
-                    title="Ver foto"
-                  >
-                    📷
-                  </button>
-                )}
-                <span
-                  className="w-24 shrink-0 text-[11px] uppercase tracking-wide"
-                  style={{ color: URGENCIA_COR[s.urgencia] }}
-                >
-                  {URGENCIA_LABELS[s.urgencia]}
-                </span>
-                <span className="flex-1 truncate text-ink">{s.descricaoItem}</span>
-                <span className="hidden shrink-0 text-dim sm:inline">{TIPO_LABELS[s.tipo]}</span>
-                <span className="shrink-0 text-dim">
-                  → {s.localDestino}{s.rackOuSlide ? ` (${s.rackOuSlide})` : ""}
-                </span>
-                <ElapsedTime
-                  since={s.criadaEm}
-                  alertAfterMinutes={5}
-                  className="hidden shrink-0 text-[11px] text-dim md:inline"
-                />
-                <button
-                  onClick={() => assumir(s.id)}
-                  disabled={assumindo === s.id}
-                  className="shrink-0 rounded bg-urgent px-3 py-1.5 font-display text-xs font-semibold text-bg transition hover:brightness-110 disabled:opacity-50"
-                >
-                  {assumindo === s.id ? "..." : "Assumir"}
-                </button>
+                <span style={{ color: URGENCIA_COR[s.urgencia] }}>{URGENCIA_LABELS[s.urgencia]}</span>
+                <span>· {TIPO_LABELS[s.tipo]}</span>
               </div>
-            ))}
+            </div>
           </div>
-        </section>
+          <button
+            onClick={() => assumir(s.id)}
+            disabled={assumindo === s.id}
+            className="shrink-0 rounded bg-urgent px-3 py-1.5 font-display text-xs font-semibold text-bg transition hover:brightness-110 disabled:opacity-50"
+          >
+            {assumindo === s.id ? "..." : "Assumir"}
+          </button>
+        </div>
+        <div className="flex flex-wrap items-center gap-x-2 border-t border-panel-border/50 pt-2 font-mono text-[11px] text-dim">
+          <span>
+            → {s.localDestino}
+            {s.rackOuSlide ? ` (${s.rackOuSlide})` : ""}
+          </span>
+          <span>·</span>
+          <ElapsedTime since={s.criadaEm} alertAfterMinutes={5} />
+        </div>
+      </div>
+    ))}
+  </div>
+</section>
       </div>
 
       <ImageLightbox src={fotoAmpliada} onClose={() => setFotoAmpliada(null)} />
