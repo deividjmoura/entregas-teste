@@ -4,14 +4,23 @@ import { prisma } from "@/lib/prisma";
 export async function GET(request: NextRequest) {
   const status = request.nextUrl.searchParams.get("status");
   const solicitanteNome = request.nextUrl.searchParams.get("solicitanteNome");
-  // "q" é a busca livre usada pelo painel público de consulta
   const q = request.nextUrl.searchParams.get("q");
+  const desde = request.nextUrl.searchParams.get("desde");
+  const ate = request.nextUrl.searchParams.get("ate");
   const limit = request.nextUrl.searchParams.get("limit");
 
   const solicitacoes = await prisma.solicitacao.findMany({
     where: {
       ...(status ? { status } : {}),
       ...(solicitanteNome ? { solicitanteNome } : {}),
+      ...(desde || ate
+        ? {
+            criadaEm: {
+              ...(desde ? { gte: new Date(desde) } : {}),
+              ...(ate ? { lte: new Date(ate) } : {}),
+            },
+          }
+        : {}),
       ...(q
         ? {
             OR: [

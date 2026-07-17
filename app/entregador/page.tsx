@@ -3,18 +3,12 @@
 import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { signOut } from "firebase/auth";
-import { TIPO_LABELS, URGENCIA_LABELS, URGENCIA_PESO, type SolicitacaoDTO } from "@/lib/domain";
+import { TIPO_LABELS, URGENCIA_LABELS, URGENCIA_PESO, URGENCIA_COR, type SolicitacaoDTO } from "@/lib/domain";
 import { UrgencyDot } from "@/components/status-badge";
 import { ElapsedTime } from "@/components/elapsed-time";
 import { ImageLightbox } from "@/components/image-lightbox";
 import { useAuthUser } from "@/lib/use-auth-user";
 import { auth } from "@/lib/firebase";
-
-const URGENCIA_COR: Record<string, string> = {
-  CRITICA: "#E8552F",
-  MEDIA: "#F2B705",
-  BAIXA: "#3EC1D3",
-};
 
 export default function EntregadorPage() {
   const router = useRouter();
@@ -97,10 +91,7 @@ export default function EntregadorPage() {
           >
             painel geral
           </button>
-          <button
-            onClick={sair}
-            className="font-mono text-xs text-dim underline decoration-dotted hover:text-ink"
-          >
+          <button onClick={sair} className="font-mono text-xs text-dim underline decoration-dotted hover:text-ink">
             sair
           </button>
         </div>
@@ -120,17 +111,14 @@ export default function EntregadorPage() {
             </h2>
             <div className="space-y-2">
               {minhasProprias.map((s) => (
-                <div
-                  key={s.id}
-                  className="rounded border border-progress/40 bg-progress/10 px-4 py-3"
-                >
+                <div key={s.id} className="rounded border border-progress/40 bg-progress/10 px-4 py-3">
                   <div className="mb-2 flex items-center justify-between gap-3">
                     <div className="flex items-center gap-3">
                       {s.foto && (
                         <button
                           type="button"
                           onClick={() => setFotoAmpliada(s.foto)}
-                          className="flex h-6 w-6 shrink-0 items-center justify-center rounded bg-bg text-xs transition hover:bg-progress/20"
+                          className="flex h-6 w-6 shrink-0 items-center justify-center rounded bg-bg text-xs hover:bg-progress/20"
                           title="Ver foto"
                         >
                           📷
@@ -167,9 +155,7 @@ export default function EntregadorPage() {
 
         <section>
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="font-display text-sm font-semibold uppercase tracking-wide text-dim">
-              Fila de despacho
-            </h2>
+            <h2 className="font-display text-sm font-semibold uppercase tracking-wide text-dim">Fila de despacho</h2>
             <span className="font-mono text-[11px] text-dim">{pendentes.length} pendente(s)</span>
           </div>
 
@@ -185,28 +171,39 @@ export default function EntregadorPage() {
                 key={s.id}
                 className={`flex items-center gap-4 px-4 py-3 font-mono text-sm ${
                   i % 2 === 0 ? "bg-panel" : "bg-bg"
-                } ${s.urgencia === "CRITICA" ? "border-l-2 border-critical" : "border-l-2 border-transparent"}`}
+                } ${
+                  s.urgencia === "LINHA_PARADA"
+                    ? "border-l-2 border-parada"
+                    : s.urgencia === "CRITICA"
+                      ? "border-l-2 border-critical"
+                      : "border-l-2 border-transparent"
+                }`}
               >
-                <UrgencyDot pulse={s.urgencia === "CRITICA"} color={URGENCIA_COR[s.urgencia]} />
+                <UrgencyDot
+                  pulse={s.urgencia === "CRITICA" || s.urgencia === "LINHA_PARADA"}
+                  color={URGENCIA_COR[s.urgencia]}
+                />
                 {s.foto && (
                   <button
                     type="button"
                     onClick={() => setFotoAmpliada(s.foto)}
-                    className="flex h-6 w-6 shrink-0 items-center justify-center rounded bg-bg text-xs transition hover:bg-progress/20"
+                    className="flex h-6 w-6 shrink-0 items-center justify-center rounded bg-bg text-xs hover:bg-progress/20"
                     title="Ver foto"
                   >
                     📷
                   </button>
                 )}
                 <span
-                  className="w-16 shrink-0 text-[11px] uppercase tracking-wide"
+                  className="w-24 shrink-0 text-[11px] uppercase tracking-wide"
                   style={{ color: URGENCIA_COR[s.urgencia] }}
                 >
                   {URGENCIA_LABELS[s.urgencia]}
                 </span>
                 <span className="flex-1 truncate text-ink">{s.descricaoItem}</span>
                 <span className="hidden shrink-0 text-dim sm:inline">{TIPO_LABELS[s.tipo]}</span>
-                <span className="shrink-0 text-dim">→ {s.localDestino}{s.rackOuSlide ? ` (${s.rackOuSlide})` : ""}</span>
+                <span className="shrink-0 text-dim">
+                  → {s.localDestino}{s.rackOuSlide ? ` (${s.rackOuSlide})` : ""}
+                </span>
                 <ElapsedTime
                   since={s.criadaEm}
                   alertAfterMinutes={5}

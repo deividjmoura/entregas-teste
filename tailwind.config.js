@@ -11,6 +11,7 @@ module.exports = {
         dim: "#9BA5AA",
         urgent: "#F2B705",
         critical: "#E8552F",
+        parada: "#FF1F4B",
         progress: "#3EC1D3",
         success: "#4CAF6D",
         cancel: "#6B7280",
@@ -25,9 +26,6 @@ module.exports = {
           "0%, 100%": { opacity: "1" },
           "50%": { opacity: "0.35" },
         },
-      },
-      animation: {
-        "pulse-led": "pulse-led 1.4s ease-in-out infinite",
       },
       animation: {
         "pulse-led": "pulse-led 1.4s ease-in-out infinite",

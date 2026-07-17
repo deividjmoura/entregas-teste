@@ -7,12 +7,23 @@ export const URGENCIA_LABELS: Record<string, string> = {
   BAIXA: "Baixa",
   MEDIA: "Média",
   CRITICA: "Crítica",
+  LINHA_PARADA: "🔴 Linha parada",
 };
 
+// Usado pra ordenar a fila por urgência (maior peso primeiro).
+// LINHA_PARADA fica bem acima do resto de propósito.
 export const URGENCIA_PESO: Record<string, number> = {
+  LINHA_PARADA: 10,
   CRITICA: 3,
   MEDIA: 2,
   BAIXA: 1,
+};
+
+export const URGENCIA_COR: Record<string, string> = {
+  LINHA_PARADA: "#FF1F4B",
+  CRITICA: "#E8552F",
+  MEDIA: "#F2B705",
+  BAIXA: "#3EC1D3",
 };
 
 export const STATUS_LABELS: Record<string, string> = {
@@ -48,4 +59,27 @@ export function formatarDuracao(ms: number): string {
   const horas = Math.floor(minutos / 60);
   const resto = minutos % 60;
   return `${horas}h${resto > 0 ? ` ${resto}min` : ""}`;
+}
+
+/**
+ * Cor determinística por nome de local (hash simples -> HSL), pra cada
+ * linha/destino ter sempre a mesma cor entre reloads. Provisório até
+ * definirmos uma paleta fixa por localidade.
+ */
+export function corParaLocal(nome: string): string {
+  let hash = 0;
+  for (let i = 0; i < nome.length; i++) {
+    hash = nome.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const matiz = Math.abs(hash) % 360;
+  return `hsl(${matiz}, 65%, 55%)`;
+}
+
+export function mesmoDia(isoA: string, isoB: Date = new Date()): boolean {
+  const a = new Date(isoA);
+  return (
+    a.getFullYear() === isoB.getFullYear() &&
+    a.getMonth() === isoB.getMonth() &&
+    a.getDate() === isoB.getDate()
+  );
 }

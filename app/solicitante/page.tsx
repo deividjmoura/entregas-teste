@@ -6,12 +6,15 @@ import { signOut } from "firebase/auth";
 import { StatusBadge } from "@/components/status-badge";
 import { ElapsedTime } from "@/components/elapsed-time";
 import { ImageLightbox } from "@/components/image-lightbox";
+import { LinhaPredefinidaModal } from "@/components/linha-predefinida-modal";
 import { resizeImageToBase64 } from "@/lib/image-utils";
 import { TIPO_LABELS, URGENCIA_LABELS, formatarHora, formatarDuracao, type SolicitacaoDTO } from "@/lib/domain";
 import { useAuthUser } from "@/lib/use-auth-user";
+import { useLinhaPredefinida } from "@/lib/use-linha-predefinida";
 import { auth } from "@/lib/firebase";
 
 const HISTORICO_LIMITE = 5;
+const CHAVE_JA_PERGUNTOU = "entregas:linhaPerguntada";
 
 export default function SolicitantePage() {
   const router = useRouter();
@@ -22,6 +25,10 @@ export default function SolicitantePage() {
   const [erro, setErro] = useState<string | null>(null);
   const [mostrarHistorico, setMostrarHistorico] = useState(false);
 
+  const { linha: linhaPredefinida, carregado: linhaCarregada, setLinha: definirLinhaPredefinida } =
+    useLinhaPredefinida();
+  const [mostrarModalLinha, setMostrarModalLinha] = useState(false);
+
   const [tipo, setTipo] = useState("COMPONENTE_FISICO");
   const [descricaoItem, setDescricaoItem] = useState("");
   const [localDestino, setLocalDestino] = useState("");
@@ -31,6 +38,30 @@ export default function SolicitantePage() {
   const [processandoFoto, setProcessandoFoto] = useState(false);
   const [fotoAmpliada, setFotoAmpliada] = useState<string | null>(null);
   const inputFotoRef = useRef<HTMLInputElement>(null);
+
+  // Pré-preenche com a linha padrão, ou pergunta uma vez por sessão se
+  // ainda não tem nada definido.
+  useEffect(() => {
+    if (!linhaCarregada) return;
+    if (linhaPredefinida) {
+      setLocalDestino((atual) => atual || linhaPredefinida);
+      return;
+    }
+    if (!sessionStorage.getItem(CHAVE_JA_PERGUNTOU)) {
+      setMostrarModalLinha(true);
+    }
+  }, [linhaCarregada, linhaPredefinida]);
+
+  function fecharModalLinha() {
+    sessionStorage.setItem(CHAVE_JA_PERGUNTOU, "1");
+    setMostrarModalLinha(false);
+  }
+
+  function confirmarLinhaPredefinida(valor: string) {
+    definirLinhaPredefinida(valor);
+    setLocalDestino((atual) => atual || valor.trim().toUpperCase());
+    fecharModalLinha();
+  }
 
   async function sair() {
     await signOut(auth);
@@ -79,8 +110,6 @@ export default function SolicitantePage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           tipo,
-          // Normaliza em maiúsculas antes de salvar, pra manter padronização
-          // em todas as telas (lista, painel, busca).
           descricaoItem: descricaoItem.toUpperCase(),
           localDestino: localDestino.toUpperCase(),
           rackOuSlide: rackOuSlide ? rackOuSlide.toUpperCase() : undefined,
@@ -95,7 +124,9 @@ export default function SolicitantePage() {
         return;
       }
       setDescricaoItem("");
-      setLocalDestino("");
+      // Mantém o local preenchido se tiver linha predefinida — só limpa
+      // quando não há linha padrão configurada.
+      setLocalDestino(linhaPredefinida ?? "");
       setRackOuSlide("");
       setUrgencia("MEDIA");
       removerFoto();
@@ -142,10 +173,7 @@ export default function SolicitantePage() {
           >
             painel geral
           </button>
-          <button
-            onClick={sair}
-            className="font-mono text-xs text-dim underline decoration-dotted hover:text-ink"
-          >
+          <button onClick={sair} className="font-mono text-xs text-dim underline decoration-dotted hover:text-ink">
             sair
           </button>
         </div>
@@ -153,9 +181,16 @@ export default function SolicitantePage() {
 
       <div className="scroll-area min-h-0 flex-1 overflow-y-auto pb-10 pr-1">
         <form onSubmit={abrirSolicitacao} className="mb-10 rounded-lg border border-panel-border bg-panel p-5">
-          <h2 className="mb-4 font-display text-sm font-semibold uppercase tracking-wide text-dim">
-            Abrir urgência
-          </h2>
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="font-display text-sm font-semibold uppercase tracking-wide text-dim">Abrir urgência</h2>
+            <button
+              type="button"
+              onClick={() => setMostrarModalLinha(true)}
+              className="font-mono text-[11px] text-dim underline decoration-dotted hover:text-ink"
+            >
+              {linhaPredefinida ? `linha padrão: ${linhaPredefinida} (trocar)` : "definir linha padrão"}
+            </button>
+          </div>
 
           <div className="mb-4 grid grid-cols-2 gap-3">
             <div>
@@ -278,15 +313,10 @@ export default function SolicitantePage() {
           <h2 className="mb-3 font-display text-sm font-semibold uppercase tracking-wide text-dim">
             Em andamento ({ativas.length})
           </h2>
-          {ativas.length === 0 && (
-            <p className="text-sm text-dim">Nenhuma solicitação em andamento.</p>
-          )}
+          {ativas.length === 0 && <p className="text-sm text-dim">Nenhuma solicitação em andamento.</p>}
           <div className="space-y-2">
             {ativas.map((s) => (
-              <div
-                key={s.id}
-                className="rounded border border-panel-border bg-panel px-4 py-3"
-              >
+              <div key={s.id} className="rounded border border-panel-border bg-panel px-4 py-3">
                 <div className="mb-2 flex items-center justify-between gap-3">
                   <div className="flex items-center gap-3">
                     {s.foto && (
@@ -295,9 +325,9 @@ export default function SolicitantePage() {
                     <div>
                       <div className="text-sm text-ink">{s.descricaoItem}</div>
                       <div className="font-mono text-[11px] text-dim">
-                      {s.localDestino}{s.rackOuSlide ? ` (${s.rackOuSlide})` : ""} · {TIPO_LABELS[s.tipo]}
-                      {s.entregadorNome ? ` · ${s.entregadorNome}` : ""}
-                      {" · aberto às "}{formatarHora(s.criadaEm)}
+                        {s.localDestino}{s.rackOuSlide ? ` (${s.rackOuSlide})` : ""} · {TIPO_LABELS[s.tipo]}
+                        {s.entregadorNome ? ` · ${s.entregadorNome}` : ""}
+                        {" · aberto às "}{formatarHora(s.criadaEm)}
                       </div>
                     </div>
                   </div>
@@ -343,10 +373,7 @@ export default function SolicitantePage() {
             <>
               <div className="space-y-2">
                 {concluidasVisiveis.map((s) => (
-                  <div
-                    key={s.id}
-                    className="flex items-center justify-between gap-3 rounded border border-panel-border bg-panel px-4 py-3 opacity-70"
-                  >
+                  <div key={s.id} className="flex items-center justify-between gap-3 rounded border border-panel-border bg-panel px-4 py-3 opacity-70">
                     <div className="flex items-center gap-3">
                       {s.foto && (
                         <button type="button" onClick={() => setFotoAmpliada(s.foto)} className="flex h-6 w-6 shrink-0 items-center justify-center rounded bg-bg text-xs transition hover:bg-progress/20" title="Ver foto">📷</button>
@@ -380,6 +407,10 @@ export default function SolicitantePage() {
           )}
         </section>
       </div>
+
+      {mostrarModalLinha && (
+        <LinhaPredefinidaModal onDefinir={confirmarLinhaPredefinida} onPular={fecharModalLinha} />
+      )}
 
       <ImageLightbox src={fotoAmpliada} onClose={() => setFotoAmpliada(null)} />
     </main>
