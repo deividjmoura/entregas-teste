@@ -50,7 +50,8 @@ export default function PainelPage() {
   const [resultadosBusca, setResultadosBusca] = useState<SolicitacaoDTO[] | null>(null);
   const [buscando, setBuscando] = useState(false);
 
-  const temFiltro = Boolean(busca.trim() || desde || ate);
+  const buscaValida = busca.trim().length >= 5;
+  const temFiltro = Boolean(buscaValida || desde || ate);
 
   useEffect(() => {
     setPerfil(localStorage.getItem("entregas:perfil"));
@@ -216,6 +217,11 @@ export default function PainelPage() {
                     onChange={(e) => setDesde(e.target.value)}
                     className="w-full rounded border border-panel-border bg-bg px-2 py-2 text-xs text-ink"
                   />
+                  {busca.trim().length > 0 && busca.trim().length < 5 && (
+                <p className="font-mono text-[11px] text-dim">
+                  digite mais {5 - busca.trim().length} caractere{5 - busca.trim().length === 1 ? "" : "s"} pra buscar...
+                </p>
+              )}
                 </div>
                 <div>
                   <label className="mb-1 block font-mono text-[11px] uppercase text-dim">Até</label>
@@ -319,7 +325,6 @@ export default function PainelPage() {
                   <LocationCard
                     key={local}
                     local={local}
-                    cor={corParaLocal(local)}
                     contagem={lista.length}
                     temLinhaParada={temLinhaParada}
                   >
