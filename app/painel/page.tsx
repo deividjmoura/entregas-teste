@@ -43,6 +43,8 @@ export default function PainelPage() {
   const [carregandoDashboard, setCarregandoDashboard] = useState(true);
   const [fotoAmpliada, setFotoAmpliada] = useState<string | null>(null);
 
+  const [scrolled, setScrolled] = useState(false);
+
   const [busca, setBusca] = useState("");
   const [desde, setDesde] = useState("");
   const [ate, setAte] = useState("");
@@ -55,6 +57,12 @@ export default function PainelPage() {
 
   useEffect(() => {
     setPerfil(localStorage.getItem("entregas:perfil"));
+  }, []);
+
+ useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    window.addEventListener("scroll", onScroll);
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   async function sair() {
@@ -134,8 +142,12 @@ export default function PainelPage() {
   );
 
   return (
-    <main className="mx-auto flex h-screen w-full max-w-[1800px] flex-col overflow-hidden px-6">
-      <header className="mb-6 mt-10 flex shrink-0 items-center justify-between">
+    <main className="mx-auto w-full max-w-[1800px] px-6">
+      <header
+  className={`sticky top-0 z-10 mb-4 flex items-center justify-between py-3 transition-colors duration-200 ${
+    scrolled ? "border-b border-panel-border bg-bg/80 backdrop-blur-md" : "border-b border-transparent bg-transparent"
+  }`}
+>
         <div>
           <div className="font-mono text-xs uppercase tracking-[0.2em] text-dim">dashboard</div>
           <h1 className="font-display text-2xl font-semibold text-ink">Painel de despacho</h1>
@@ -167,7 +179,7 @@ export default function PainelPage() {
 
       
 
-      <div className="scroll-area min-h-0 flex-1 overflow-y-auto pb-10 pr-1">
+      <div className="pb-10">
         {/* Resumo do dia */}
         <div className="mb-4 grid shrink-0 grid-cols-2 gap-2">
   <div className="rounded border border-panel-border bg-panel px-3 py-2">

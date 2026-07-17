@@ -48,11 +48,11 @@ export function LocationCard({ local, contagem, temLinhaParada, children }: Loca
           <div className="flex items-center gap-2">
             <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: corForte }} />
             <span
-              className="font-mono text-[11px] font-semibold uppercase tracking-wide"
-              style={{ color: temLinhaParada ? "#FF1F4B" : corTexto }}
-            >
-              {local}
-            </span>
+  className="font-display text-sm font-bold uppercase tracking-wide"
+  style={{ color: temLinhaParada ? "#FF1F4B" : corTexto }}
+>
+  {local}
+</span>
           </div>
           <div className="flex items-baseline gap-1.5">
             <span
