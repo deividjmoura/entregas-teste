@@ -26,7 +26,7 @@ export function LocationCard({ local, contagem, temLinhaParada, children }: Loca
 
   return (
     <div
-      className={`flex flex-col overflow-hidden rounded-2xl border backdrop-blur-sm transition-colors ${
+      className={`flex flex-col overflow-hidden rounded-[20px] border backdrop-blur-sm transition-colors ${
         temLinhaParada ? "border-parada" : ""
       }`}
       style={{
@@ -42,7 +42,7 @@ export function LocationCard({ local, contagem, temLinhaParada, children }: Loca
       <button
         type="button"
         onClick={() => setAberto((v) => !v)}
-        className="flex w-full items-start justify-between gap-3 px-4 pb-3 pt-4 text-left"
+        className="flex w-full items-start justify-between gap-3 px-4 pb-2.5 pt-3.5 text-left"
       >
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2">
@@ -93,7 +93,7 @@ export function LocationCard({ local, contagem, temLinhaParada, children }: Loca
       </button>
 
       {pronto && aberto && (
-  <div className="scroll-area h-[240px] space-y-2 overflow-y-auto border-t border-panel-border/50 px-4 py-3">
+  <div className="scroll-area h-[204px] space-y-1.5 overflow-y-auto border-t border-panel-border/50 px-4 py-2.5">
     {children}
   </div>
 )}
