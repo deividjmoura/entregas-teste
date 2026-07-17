@@ -148,13 +148,6 @@ export default function PainelPage() {
     scrolled ? "border-b border-panel-border/60 bg-bg/40 backdrop-blur-md" : "border-b border-transparent bg-transparent"
   }`}
 >
-Troquei bg-bg/80 (80% opaco) por bg-bg/40 (40% opaco) — deixa bem mais ver-através, com o backdrop-blur-md ainda garantindo legibilidade do texto por cima do conteúdo passando por baixo. Também suavizei a borda (border-panel-border/60) pra não ficar uma linha muito dura contrastando com o header mais translúcido.
-
-Se ainda achar pouco depois de testar, dá pra ir até bg-bg/25 — só me avisa o quanto quer ajustar.
-
-
-
-
         <div>
           <div className="font-mono text-xs uppercase tracking-[0.2em] text-dim">dashboard</div>
           <h1 className="font-display text-2xl font-semibold text-ink">Painel de despacho</h1>
