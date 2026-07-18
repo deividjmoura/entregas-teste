@@ -1,14 +1,15 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
+  darkMode: "class",
   content: ["./app/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}"],
   theme: {
     extend: {
       colors: {
-        bg: "#14181B",
-        panel: "#1B2024",
-        "panel-border": "#2A3136",
-        ink: "#EDEFF1",
-        dim: "#9BA5AA",
+        bg: "rgb(var(--color-bg) / <alpha-value>)",
+        panel: "rgb(var(--color-panel) / <alpha-value>)",
+        "panel-border": "rgb(var(--color-panel-border) / <alpha-value>)",
+        ink: "rgb(var(--color-ink) / <alpha-value>)",
+        dim: "rgb(var(--color-dim) / <alpha-value>)",
         urgent: "#F2B705",
         critical: "#E8552F",
         parada: "#FF1F4B",
@@ -33,4 +34,4 @@ module.exports = {
     },
   },
   plugins: [],
-};
+};  

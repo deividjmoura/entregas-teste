@@ -2,15 +2,33 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Tema escuro (padrão / :root) */
+:root {
+  --color-bg: 20 24 27;              /* #14181B */
+  --color-panel: 27 32 36;           /* #1B2024 */
+  --color-panel-border: 42 49 54;    /* #2A3136 */
+  --color-ink: 237 239 241;          /* #EDEFF1 */
+  --color-dim: 155 165 170;          /* #9BA5AA */
+}
+
+/* Tema claro */
+.light {
+  --color-bg: 246 247 250;           /* #F6F7FA - cinza bem clarinho, não branco puro */
+  --color-panel: 255 255 255;        /* #FFFFFF */
+  --color-panel-border: 227 231 236; /* #E3E7EC */
+  --color-ink: 22 32 48;             /* #162030 - azul-marinho escuro */
+  --color-dim: 108 122 137;          /* #6C7A89 */
+}
+
 html,
 body {
   height: 100%;
-
 }
 
 body {
-  background-color: #14181b;
-  color: #edeff1;
+  background-color: rgb(var(--color-bg));
+  color: rgb(var(--color-ink));
+  transition: background-color 0.15s ease, color 0.15s ease;
 }
 
 ::selection {
@@ -18,17 +36,14 @@ body {
   color: #14181b;
 }
 
-/* Foco visível para acessibilidade de teclado */
 :focus-visible {
   outline: 2px solid #3ec1d3;
   outline-offset: 2px;
 }
 
-/* Scrollbar customizada — combina com o painel de despacho em vez da
-   barra padrão do sistema operacional */
 .scroll-area {
   scrollbar-width: thin;
-  scrollbar-color: #2a3136 transparent;
+  scrollbar-color: rgb(var(--color-panel-border)) transparent;
 }
 
 .scroll-area::-webkit-scrollbar {
@@ -40,7 +55,7 @@ body {
 }
 
 .scroll-area::-webkit-scrollbar-thumb {
-  background-color: #2a3136;
+  background-color: rgb(var(--color-panel-border));
   border-radius: 999px;
 }
 

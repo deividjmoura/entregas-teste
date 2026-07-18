@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Space_Grotesk, IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
+import { ThemeToggle } from "@/components/theme-toggle";
 import "./globals.css";
 
 const display = Space_Grotesk({
@@ -28,8 +29,21 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt-BR">
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                const tema = localStorage.getItem('entregas:tema');
+                if (tema === 'light') document.documentElement.classList.add('light');
+              } catch (e) {}
+            `,
+          }}
+        />
+      </head>
       <body className={`${display.variable} ${body.variable} ${mono.variable} font-body`}>
         {children}
+        <ThemeToggle />
       </body>
     </html>
   );
