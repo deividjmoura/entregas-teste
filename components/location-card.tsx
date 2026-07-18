@@ -23,7 +23,6 @@ export function LocationCard({ local, contagem, temLinhaParada, children }: Loca
   const corForte = corParaLocal(local, 1, 62);
   const corTexto = corParaLocal(local, 1, 78);
   const corGlow = temLinhaParada ? "#FF1F4B" : corForte;
-  const corBorda = temLinhaParada ? "#FF1F4B" : corParaLocal(local, 0.55);
 
   return (
     <div
@@ -31,26 +30,20 @@ export function LocationCard({ local, contagem, temLinhaParada, children }: Loca
         temLinhaParada ? "animate-pulse-led" : ""
       }`}
       style={{
-        borderColor: corBorda,
+        borderColor: temLinhaParada ? "#FF1F4B" : corParaLocal(local, 0.55),
         backgroundColor: "#181A22",
         backgroundImage: temLinhaParada
           ? "linear-gradient(160deg, rgba(255,31,75,0.22), rgba(255,31,75,0.02) 55%)"
           : `linear-gradient(160deg, ${corParaLocal(local, 0.28)}, transparent 55%)`,
         boxShadow: [
-          // halo próximo, bem saturado — dá o "neon"
           `0 0 24px -4px ${corGlow}99`,
-          // halo distante, mais suave — dá profundidade / efeito 3D
           `0 0 70px -12px ${corGlow}55`,
-          // sombra de "chão", ancora o card visualmente
           `0 18px 40px -20px rgba(0,0,0,0.6)`,
-          // brilho interno sutil no topo, tipo bisel de vidro
           `inset 0 1px 0 rgba(255,255,255,0.06)`,
-          // borda fininha extra pra reforçar o contorno neon
           `0 0 0 1px ${corGlow}33`,
         ].join(", "),
       }}
     >
-      {/* Cabeçalho: número grande em destaque, tipo card de dashboard */}
       <button
         type="button"
         onClick={() => setAberto((v) => !v)}
@@ -79,7 +72,7 @@ export function LocationCard({ local, contagem, temLinhaParada, children }: Loca
             >
               {contagem}
             </span>
-            <span className="font-mono text-[10px] uppercase tracking-wide text-dim">
+            <span className="font-mono text-[10px] uppercase tracking-wide text-card-dim">
               {contagem === 1 ? "pendente" : "pendentes"}
             </span>
           </div>
@@ -90,7 +83,6 @@ export function LocationCard({ local, contagem, temLinhaParada, children }: Loca
           )}
         </div>
 
-        {/* Anel decorativo com a cor do local */}
         <div className="flex shrink-0 items-center gap-2">
           <span
             className="flex h-11 w-11 items-center justify-center rounded-full border-2"
@@ -103,7 +95,7 @@ export function LocationCard({ local, contagem, temLinhaParada, children }: Loca
             <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: corForte }} />
           </span>
           <span
-            className="text-dim transition-transform"
+            className="text-card-dim transition-transform"
             style={{ transform: aberto ? "rotate(180deg)" : "none" }}
           >
             ▾
@@ -112,7 +104,7 @@ export function LocationCard({ local, contagem, temLinhaParada, children }: Loca
       </button>
 
       {pronto && aberto && (
-        <div className="scroll-area h-[204px] space-y-1.5 overflow-y-auto border-t border-panel-border/50 px-4 py-2.5">
+        <div className="scroll-area h-[204px] space-y-1.5 overflow-y-auto border-t border-white/10 px-4 py-2.5">
           {children}
         </div>
       )}
