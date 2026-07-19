@@ -14,6 +14,7 @@ model Solicitacao {
   localDestino    String
   rackOuSlide     String?
   foto            String?   @db.Text
+  temFoto         Boolean   @default(false)
   urgencia        String
   status          String    @default("PENDENTE")
   solicitanteNome String

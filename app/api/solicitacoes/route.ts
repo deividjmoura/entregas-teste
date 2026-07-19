@@ -1,6 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+const CAMPOS_LISTAGEM = {
+  id: true,
+  tipo: true,
+  descricaoItem: true,
+  localDestino: true,
+  rackOuSlide: true,
+  temFoto: true,
+  urgencia: true,
+  status: true,
+  solicitanteNome: true,
+  entregadorNome: true,
+  versao: true,
+  criadaEm: true,
+  atualizadaEm: true,
+  entregueEm: true,
+} as const;
+
 export async function GET(request: NextRequest) {
   const status = request.nextUrl.searchParams.get("status");
   const solicitanteNome = request.nextUrl.searchParams.get("solicitanteNome");
@@ -32,6 +49,7 @@ export async function GET(request: NextRequest) {
           }
         : {}),
     },
+    select: CAMPOS_LISTAGEM,
     orderBy: { criadaEm: "desc" },
     ...(limit ? { take: Number(limit) } : {}),
   });
@@ -54,10 +72,12 @@ export async function POST(request: NextRequest) {
       localDestino: String(localDestino).trim().toUpperCase(),
       rackOuSlide: rackOuSlide ? String(rackOuSlide).trim().toUpperCase() : null,
       foto: foto ? String(foto) : null,
+      temFoto: Boolean(foto),
       urgencia,
       solicitanteNome: String(solicitanteNome).trim(),
       status: "PENDENTE",
     },
+    select: CAMPOS_LISTAGEM,
   });
 
   return NextResponse.json(solicitacao, { status: 201 });

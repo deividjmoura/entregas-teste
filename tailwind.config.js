@@ -16,10 +16,8 @@ module.exports = {
         progress: "#3EC1D3",
         success: "#4CAF6D",
         cancel: "#6B7280",
-        // Tokens fixos — sempre claros, para uso DENTRO de cartões
-        // de vidro escuros (LocationCard) que não seguem o tema.
-        "card-ink": "#EDEFF1",
-        "card-dim": "#9BA5AA",
+        "card-ink": "var(--card-ink)",
+        "card-dim": "var(--card-dim)",
       },
       fontFamily: {
         display: ["var(--font-display)"],

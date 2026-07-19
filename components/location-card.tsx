@@ -31,7 +31,7 @@ export function LocationCard({ local, contagem, temLinhaParada, children }: Loca
       }`}
       style={{
         borderColor: temLinhaParada ? "#FF1F4B" : corParaLocal(local, 0.55),
-        backgroundColor: "#181A22",
+        backgroundColor: "var(--card-bg)",
         backgroundImage: temLinhaParada
           ? "linear-gradient(160deg, rgba(255,31,75,0.22), rgba(255,31,75,0.02) 55%)"
           : `linear-gradient(160deg, ${corParaLocal(local, 0.28)}, transparent 55%)`,
@@ -39,7 +39,7 @@ export function LocationCard({ local, contagem, temLinhaParada, children }: Loca
           `0 0 24px -4px ${corGlow}99`,
           `0 0 70px -12px ${corGlow}55`,
           `0 18px 40px -20px rgba(0,0,0,0.6)`,
-          `inset 0 1px 0 rgba(255,255,255,0.06)`,
+          `inset 0 1px 0 var(--card-highlight)`,
           `0 0 0 1px ${corGlow}33`,
         ].join(", "),
       }}

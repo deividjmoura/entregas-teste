@@ -4,22 +4,35 @@
 
 /* Tema escuro (padrão / :root) */
 :root {
-  --color-bg: 20 24 27;              /* #14181B */
-  --color-panel: 27 32 36;           /* #1B2024 */
-  --color-panel-border: 42 49 54;    /* #2A3136 */
-  --color-ink: 237 239 241;          /* #EDEFF1 */
-  --color-dim: 155 165 170;          /* #9BA5AA */
-}
+  --color-bg: 20 24 27;
+  --color-panel: 27 32 36;
+  --color-panel-border: 42 49 54;
+  --color-ink: 237 239 241;
+  --color-dim: 155 165 170;
 
-/* Tema claro */
+  /* Cards "de vidro" do painel — antes eram sempre escuros */
+  --card-bg: #181A22;
+  --card-ink: #EDEFF1;
+  --card-dim: #9BA5AA;
+  --card-row-bg: rgba(0, 0, 0, 0.2);
+  --card-row-border: rgba(255, 255, 255, 0.1);
+  --card-highlight: rgba(255, 255, 255, 0.06);
+}
+  /* Tema claro */
 .light {
-  --color-bg: 246 247 250;           /* #F6F7FA - cinza bem clarinho, não branco puro */
-  --color-panel: 255 255 255;        /* #FFFFFF */
-  --color-panel-border: 227 231 236; /* #E3E7EC */
-  --color-ink: 22 32 48;             /* #162030 - azul-marinho escuro */
-  --color-dim: 108 122 137;          /* #6C7A89 */
-}
+  --color-bg: 246 247 250;
+  --color-panel: 255 255 255;
+  --color-panel-border: 227 231 236;
+  --color-ink: 22 32 48;
+  --color-dim: 108 122 137;
 
+  --card-bg: #FFFFFF;
+  --card-ink: #162030;
+  --card-dim: #6C7A89;
+  --card-row-bg: rgba(0, 0, 0, 0.035);
+  --card-row-border: rgba(0, 0, 0, 0.08);
+  --card-highlight: rgba(0, 0, 0, 0.04);
+}
 html,
 body {
   height: 100%;

@@ -10,8 +10,10 @@ import { LinhaPredefinidaModal } from "@/components/linha-predefinida-modal";
 import { resizeImageToBase64 } from "@/lib/image-utils";
 import { TIPO_LABELS, URGENCIA_LABELS, formatarHora, formatarDuracao, type SolicitacaoDTO } from "@/lib/domain";
 import { useAuthUser } from "@/lib/use-auth-user";
+import { useFotoAmpliada } from "@/lib/use-foto-ampliada";
 import { useLinhaPredefinida } from "@/lib/use-linha-predefinida";
 import { auth } from "@/lib/firebase";
+
 
 const HISTORICO_LIMITE = 5;
 const CHAVE_JA_PERGUNTOU = "entregas:linhaPerguntada";
@@ -36,7 +38,7 @@ export default function SolicitantePage() {
   const [urgencia, setUrgencia] = useState("MEDIA");
   const [foto, setFoto] = useState<string | null>(null);
   const [processandoFoto, setProcessandoFoto] = useState(false);
-  const [fotoAmpliada, setFotoAmpliada] = useState<string | null>(null);
+  const { foto: fotoAmpliada, carregando: carregandoFoto, abrir: abrirFoto, fechar: fecharFoto } = useFotoAmpliada();
   const inputFotoRef = useRef<HTMLInputElement>(null);
 
   // Pré-preenche com a linha padrão, ou pergunta uma vez por sessão se
@@ -324,8 +326,8 @@ export default function SolicitantePage() {
               <div key={s.id} className="rounded border border-panel-border bg-panel px-4 py-3">
                 <div className="mb-2 flex items-center justify-between gap-3">
                   <div className="flex items-center gap-3">
-                    {s.foto && (
-                      <button type="button" onClick={() => setFotoAmpliada(s.foto)} className="flex h-6 w-6 shrink-0 items-center justify-center rounded bg-bg text-xs transition hover:bg-progress/20" title="Ver foto">📷</button>
+                    {s.temFoto && (
+                      <button type="button" onClick={() => abrirFoto(s.id)} className="flex h-6 w-6 shrink-0 items-center justify-center rounded bg-bg text-xs transition hover:bg-progress/20" title="Ver foto">📷</button>
                     )}
                     <div>
                       <div className="text-sm text-ink">{s.descricaoItem}</div>
@@ -380,8 +382,8 @@ export default function SolicitantePage() {
                 {concluidasVisiveis.map((s) => (
                   <div key={s.id} className="flex items-center justify-between gap-3 rounded border border-panel-border bg-panel px-4 py-3 opacity-70">
                     <div className="flex items-center gap-3">
-                      {s.foto && (
-                        <button type="button" onClick={() => setFotoAmpliada(s.foto)} className="flex h-6 w-6 shrink-0 items-center justify-center rounded bg-bg text-xs transition hover:bg-progress/20" title="Ver foto">📷</button>
+                      {s.temFoto && (
+                        <button type="button" onClick={() => abrirFoto(s.id)} className="flex h-6 w-6 shrink-0 items-center justify-center rounded bg-bg text-xs transition hover:bg-progress/20" title="Ver foto">📷</button>
                       )}
                       <div>
                         <div className="text-sm text-ink">{s.descricaoItem}</div>
@@ -417,7 +419,12 @@ export default function SolicitantePage() {
         <LinhaPredefinidaModal onDefinir={confirmarLinhaPredefinida} onPular={fecharModalLinha} />
       )}
 
-      <ImageLightbox src={fotoAmpliada} onClose={() => setFotoAmpliada(null)} />
+      <ImageLightbox src={fotoAmpliada} onClose={fecharFoto} />
+{carregandoFoto && (
+  <div className="fixed bottom-4 left-4 z-50 rounded border border-panel-border bg-panel px-3 py-2 font-mono text-xs text-dim">
+    Carregando foto...
+  </div>
+)}
     </main>
   );
 }

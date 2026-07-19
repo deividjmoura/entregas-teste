@@ -21,6 +21,7 @@ import {
   type SolicitacaoDTO,
 } from "@/lib/domain";
 import { useOptionalAuthUser } from "@/lib/use-optional-auth-user";
+import { useFotoAmpliada } from "@/lib/use-foto-ampliada";
 import { auth } from "@/lib/firebase";
 
 const POLL_MS = 4000;
@@ -41,7 +42,7 @@ export default function PainelPage() {
   const [ativos, setAtivos] = useState<SolicitacaoDTO[]>([]);
   const [entreguesRecentes, setEntreguesRecentes] = useState<SolicitacaoDTO[]>([]);
   const [carregandoDashboard, setCarregandoDashboard] = useState(true);
-  const [fotoAmpliada, setFotoAmpliada] = useState<string | null>(null);
+  const { foto: fotoAmpliada, carregando: carregandoFoto, abrir: abrirFoto, fechar: fecharFoto } = useFotoAmpliada();
 
   const [scrolled, setScrolled] = useState(false);
 
@@ -275,10 +276,10 @@ export default function PainelPage() {
                   <div key={s.id} className="rounded border border-panel-border bg-panel px-4 py-3">
                     <div className="mb-1 flex items-center justify-between gap-3">
                       <div className="flex items-center gap-3">
-                        {s.foto && (
+                        {s.temFoto && (
                           <button
                             type="button"
-                            onClick={() => setFotoAmpliada(s.foto)}
+                            onClick={() => abrirFoto(s.id)}
                             className="flex h-6 w-6 shrink-0 items-center justify-center rounded bg-bg text-xs hover:bg-progress/20"
                             title="Ver foto"
                           >
@@ -349,10 +350,10 @@ export default function PainelPage() {
                               pulse={s.urgencia === "CRITICA" || s.urgencia === "LINHA_PARADA"}
                               color={URGENCIA_COR[s.urgencia]}
                             />
-                            {s.foto && (
+                            {s.temFoto && (
                               <button
                                 type="button"
-                                onClick={() => setFotoAmpliada(s.foto)}
+                                onClick={() => abrirFoto(s.id)}
                                 className="text-xs"
                                 title="Ver foto"
                               >
@@ -392,7 +393,12 @@ export default function PainelPage() {
         )}
       </div>
 
-      <ImageLightbox src={fotoAmpliada} onClose={() => setFotoAmpliada(null)} />
+      <ImageLightbox src={fotoAmpliada} onClose={fecharFoto} />
+{carregandoFoto && (
+  <div className="fixed bottom-4 left-4 z-50 rounded border border-panel-border bg-panel px-3 py-2 font-mono text-xs text-dim">
+    Carregando foto...
+  </div>
+)}
     </main>
   );
 }

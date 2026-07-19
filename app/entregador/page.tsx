@@ -15,6 +15,7 @@ import { ElapsedTime } from "@/components/elapsed-time";
 import { ImageLightbox } from "@/components/image-lightbox";
 import { LocationCard } from "@/components/location-card";
 import { useAuthUser } from "@/lib/use-auth-user";
+import { useFotoAmpliada } from "@/lib/use-foto-ampliada";
 import { auth } from "@/lib/firebase";
 
 function ordenarGrupo(lista: SolicitacaoDTO[]): SolicitacaoDTO[] {
@@ -33,7 +34,7 @@ export default function EntregadorPage() {
   const [minhasEmCurso, setMinhasEmCurso] = useState<SolicitacaoDTO[]>([]);
   const [erro, setErro] = useState<string | null>(null);
   const [assumindo, setAssumindo] = useState<string | null>(null);
-  const [fotoAmpliada, setFotoAmpliada] = useState<string | null>(null);
+  const { foto: fotoAmpliada, carregando: carregandoFoto, abrir: abrirFoto, fechar: fecharFoto } = useFotoAmpliada();
 
   async function sair() {
     await signOut(auth);
@@ -153,10 +154,10 @@ export default function EntregadorPage() {
                   className="flex flex-col gap-3 rounded-lg border border-progress/40 bg-progress/10 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
                 >
                   <div className="flex items-center gap-3">
-                    {s.foto && (
+                    {s.temFoto && (
                       <button
                         type="button"
-                        onClick={() => setFotoAmpliada(s.foto)}
+                        onClick={() => abrirFoto(s.id)}
                         className="flex h-6 w-6 shrink-0 items-center justify-center rounded bg-bg text-xs hover:bg-progress/20"
                         title="Ver foto"
                       >
@@ -214,17 +215,21 @@ export default function EntregadorPage() {
                   temLinhaParada={temLinhaParada}
                 >
                   {lista.map((s) => (
-                    <div key={s.id} className="rounded border border-white/10 bg-black/20 px-3 py-2">
+                    <div
+                      key={s.id}
+                      className="rounded border px-3 py-2"
+                      style={{ borderColor: "var(--card-row-border)", backgroundColor: "var(--card-row-bg)" }}
+                      >
                       <div className="mb-1 flex items-center justify-between gap-2">
                         <div className="flex items-center gap-2">
                           <UrgencyDot
                             pulse={s.urgencia === "CRITICA" || s.urgencia === "LINHA_PARADA"}
                             color={URGENCIA_COR[s.urgencia]}
                           />
-                          {s.foto && (
+                          {s.temFoto && (
                             <button
                               type="button"
-                              onClick={() => setFotoAmpliada(s.foto)}
+                              onClick={() => abrirFoto(s.id)}
                               className="text-xs"
                               title="Ver foto"
                             >
@@ -262,7 +267,12 @@ export default function EntregadorPage() {
         </section>
       </div>
 
-      <ImageLightbox src={fotoAmpliada} onClose={() => setFotoAmpliada(null)} />
+      <ImageLightbox src={fotoAmpliada} onClose={fecharFoto} />
+{carregandoFoto && (
+  <div className="fixed bottom-4 left-4 z-50 rounded border border-panel-border bg-panel px-3 py-2 font-mono text-xs text-dim">
+    Carregando foto...
+  </div>
+)}
     </main>
   );
 }
