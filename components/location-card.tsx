@@ -76,11 +76,15 @@ export function LocationCard({ local, contagem, temLinhaParada, children }: Loca
               {contagem === 1 ? "pendente" : "pendentes"}
             </span>
           </div>
-          {temLinhaParada && (
-            <span className="mt-1 w-fit animate-pulse-led rounded bg-parada/20 px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wide text-parada">
-              linha parada
-            </span>
-          )}
+          <span
+            className={`mt-1 w-fit rounded px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wide ${
+              temLinhaParada
+                ? "animate-pulse-led bg-parada/20 text-parada"
+                : "invisible"
+            }`}
+          >
+            linha parada
+          </span>
         </div>
 
         <div className="flex shrink-0 items-center gap-2">
