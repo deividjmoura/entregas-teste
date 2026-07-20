@@ -1,19 +1,20 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { signOut } from "firebase/auth";
 import { StatusBadge } from "@/components/status-badge";
 import { ElapsedTime } from "@/components/elapsed-time";
 import { ImageLightbox } from "@/components/image-lightbox";
 import { LinhaPredefinidaModal } from "@/components/linha-predefinida-modal";
+import { MetricCard } from "@/components/metric-card";
+import { IconRequests, IconDashboard } from "@/components/icons";
 import { resizeImageToBase64 } from "@/lib/image-utils";
-import { TIPO_LABELS, URGENCIA_LABELS, formatarHora, formatarDuracao, type SolicitacaoDTO } from "@/lib/domain";
+import { TIPO_LABELS, URGENCIA_LABELS, URGENCIA_COR, formatarHora, formatarDuracao, mesmoDia, type SolicitacaoDTO } from "@/lib/domain";
 import { useAuthUser } from "@/lib/use-auth-user";
 import { useFotoAmpliada } from "@/lib/use-foto-ampliada";
 import { useLinhaPredefinida } from "@/lib/use-linha-predefinida";
 import { auth } from "@/lib/firebase";
-
 
 const HISTORICO_LIMITE = 5;
 const CHAVE_JA_PERGUNTOU = "entregas:linhaPerguntada";
@@ -41,8 +42,6 @@ export default function SolicitantePage() {
   const { foto: fotoAmpliada, carregando: carregandoFoto, abrir: abrirFoto, fechar: fecharFoto } = useFotoAmpliada();
   const inputFotoRef = useRef<HTMLInputElement>(null);
 
-  // Pré-preenche com a linha padrão, ou pergunta uma vez por sessão se
-  // ainda não tem nada definido.
   useEffect(() => {
     if (!linhaCarregada) return;
     if (linhaPredefinida) {
@@ -126,8 +125,6 @@ export default function SolicitantePage() {
         return;
       }
       setDescricaoItem("");
-      // Mantém o local preenchido se tiver linha predefinida — só limpa
-      // quando não há linha padrão configurada.
       setLocalDestino(linhaPredefinida ?? "");
       setRackOuSlide("");
       setUrgencia("MEDIA");
@@ -139,19 +136,19 @@ export default function SolicitantePage() {
   }
 
   async function alterarUrgencia(id: string, novaUrgencia: string) {
-  if (!nome) return;
-  const res = await fetch(`/api/solicitacoes/${id}`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ urgencia: novaUrgencia }),
-  });
-  if (res.ok) {
-    await carregar(nome);
-  } else {
-    const data = await res.json();
-    setErro(data.erro ?? "Falha ao alterar urgência");
+    if (!nome) return;
+    const res = await fetch(`/api/solicitacoes/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ urgencia: novaUrgencia }),
+    });
+    if (res.ok) {
+      await carregar(nome);
+    } else {
+      const data = await res.json();
+      setErro(data.erro ?? "Falha ao alterar urgência");
+    }
   }
-}
 
   async function remover(id: string) {
     if (!nome) return;
@@ -165,13 +162,17 @@ export default function SolicitantePage() {
   const ativas = minhas.filter((s) => s.status === "PENDENTE" || s.status === "EM_CURSO");
   const concluidas = minhas.filter((s) => s.status === "ENTREGUE" || s.status === "CANCELADA");
   const concluidasVisiveis = concluidas.slice(0, HISTORICO_LIMITE);
+  const entreguesHoje = useMemo(
+    () => concluidas.filter((s) => s.status === "ENTREGUE" && s.entregueEm && mesmoDia(s.entregueEm)).length,
+    [concluidas],
+  );
 
   return (
-    <main className="mx-auto flex h-screen max-w-2xl flex-col overflow-hidden px-6">
-      <header className="mb-8 mt-10 flex shrink-0 items-center justify-between">
+    <div className="min-h-screen bg-bg">
+      <header className="sticky top-0 z-10 flex items-center justify-between border-b border-panel-border/60 bg-bg/70 px-6 py-4 backdrop-blur-md">
         <div>
           <div className="font-mono text-xs uppercase tracking-[0.2em] text-dim">solicitante</div>
-          <h1 className="font-display text-2xl font-semibold text-ink">Olá, {nome}</h1>
+          <h1 className="font-display text-lg font-semibold text-ink">Olá, {nome}</h1>
         </div>
         <div className="flex items-center gap-4">
           <button
@@ -186,10 +187,25 @@ export default function SolicitantePage() {
         </div>
       </header>
 
-      <div className="scroll-area min-h-0 flex-1 overflow-y-auto pb-10 pr-1">
-        <form onSubmit={abrirSolicitacao} className="mb-10 rounded-lg border border-panel-border bg-panel p-5">
+      <main className="mx-auto max-w-2xl px-6 py-6 pb-16">
+        <div className="mb-6 grid grid-cols-2 gap-4">
+          <MetricCard
+            label="Em andamento"
+            value={ativas.length}
+            icon={<IconRequests className="h-4 w-4" />}
+            accentColor="#F2B705"
+          />
+          <MetricCard
+            label="Entregues hoje"
+            value={entreguesHoje}
+            icon={<IconDashboard className="h-4 w-4" />}
+            accentColor="#4CAF6D"
+          />
+        </div>
+
+        <form onSubmit={abrirSolicitacao} className="mb-8 rounded-2xl border border-panel-border bg-panel p-5 shadow-premium-sm">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="font-display text-sm font-semibold uppercase tracking-wide text-dim">Abrir urgência</h2>
+            <h2 className="font-display text-base font-semibold text-ink">Abrir urgência</h2>
             <button
               type="button"
               onClick={() => setMostrarModalLinha(true)}
@@ -205,7 +221,7 @@ export default function SolicitantePage() {
               <select
                 value={tipo}
                 onChange={(e) => setTipo(e.target.value)}
-                className="w-full rounded border border-panel-border bg-bg px-3 py-2 text-sm text-ink"
+                className="w-full rounded-lg border border-panel-border bg-surface-2 px-3 py-2 text-sm text-ink"
               >
                 {Object.entries(TIPO_LABELS).map(([k, v]) => (
                   <option key={k} value={k}>{v}</option>
@@ -217,7 +233,7 @@ export default function SolicitantePage() {
               <select
                 value={urgencia}
                 onChange={(e) => setUrgencia(e.target.value)}
-                className="w-full rounded border border-panel-border bg-bg px-3 py-2 text-sm text-ink"
+                className="w-full rounded-lg border border-panel-border bg-surface-2 px-3 py-2 text-sm text-ink"
               >
                 {Object.entries(URGENCIA_LABELS).map(([k, v]) => (
                   <option key={k} value={k}>{v}</option>
@@ -235,7 +251,7 @@ export default function SolicitantePage() {
               onChange={(e) => setDescricaoItem(e.target.value)}
               placeholder="ex: resistor 10k"
               required
-              className="w-full rounded border border-panel-border bg-bg px-3 py-2 text-sm uppercase text-ink placeholder:normal-case placeholder:text-dim/60"
+              className="w-full rounded-lg border border-panel-border bg-surface-2 px-3 py-2 text-sm uppercase text-ink placeholder:normal-case placeholder:text-dim/60"
             />
           </div>
 
@@ -249,7 +265,7 @@ export default function SolicitantePage() {
                 onChange={(e) => setLocalDestino(e.target.value)}
                 placeholder="ex: Linha de montagem 3"
                 required
-                className="w-full rounded border border-panel-border bg-bg px-3 py-2 text-sm uppercase text-ink placeholder:normal-case placeholder:text-dim/60"
+                className="w-full rounded-lg border border-panel-border bg-surface-2 px-3 py-2 text-sm uppercase text-ink placeholder:normal-case placeholder:text-dim/60"
               />
             </div>
             <div>
@@ -260,7 +276,7 @@ export default function SolicitantePage() {
                 value={rackOuSlide}
                 onChange={(e) => setRackOuSlide(e.target.value)}
                 placeholder="ex: Rack A3 / Slide 12"
-                className="w-full rounded border border-panel-border bg-bg px-3 py-2 text-sm uppercase text-ink placeholder:normal-case placeholder:text-dim/60"
+                className="w-full rounded-lg border border-panel-border bg-surface-2 px-3 py-2 text-sm uppercase text-ink placeholder:normal-case placeholder:text-dim/60"
               />
             </div>
           </div>
@@ -275,7 +291,7 @@ export default function SolicitantePage() {
                 type="button"
                 onClick={() => inputFotoRef.current?.click()}
                 disabled={processandoFoto}
-                className="flex w-full items-center justify-center gap-2 rounded border border-dashed border-panel-border bg-bg px-3 py-4 text-sm text-dim transition hover:border-progress hover:text-ink disabled:opacity-50"
+                className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-panel-border bg-surface-2 px-3 py-4 text-sm text-dim transition hover:border-accent/50 hover:text-ink disabled:opacity-50"
               >
                 {processandoFoto ? "Processando..." : "📷 Tirar foto"}
               </button>
@@ -283,7 +299,7 @@ export default function SolicitantePage() {
 
             {foto && (
               <div className="relative w-fit">
-                <img src={foto} alt="Prévia da foto" className="h-32 w-32 rounded border border-panel-border object-cover" />
+                <img src={foto} alt="Prévia da foto" className="h-32 w-32 rounded-lg border border-panel-border object-cover" />
                 <button
                   type="button"
                   onClick={removerFoto}
@@ -310,24 +326,28 @@ export default function SolicitantePage() {
           <button
             type="submit"
             disabled={enviando || processandoFoto}
-            className="w-full rounded bg-urgent px-4 py-2.5 font-display text-sm font-semibold text-bg transition hover:brightness-110 disabled:opacity-50"
+            className="w-full rounded-lg bg-accent px-4 py-2.5 font-display text-sm font-semibold text-white transition hover:brightness-110 disabled:opacity-50"
           >
             {enviando ? "Abrindo..." : "Abrir urgência"}
           </button>
         </form>
 
         <section className="mb-8">
-          <h2 className="mb-3 font-display text-sm font-semibold uppercase tracking-wide text-dim">
-            Em andamento ({ativas.length})
+          <h2 className="mb-3 font-display text-base font-semibold text-ink">
+            Em andamento <span className="text-dim">({ativas.length})</span>
           </h2>
           {ativas.length === 0 && <p className="text-sm text-dim">Nenhuma solicitação em andamento.</p>}
           <div className="space-y-2">
             {ativas.map((s) => (
-              <div key={s.id} className="rounded border border-panel-border bg-panel px-4 py-3">
+              <div
+                key={s.id}
+                className="premium-card rounded-2xl border border-panel-border bg-panel px-4 py-3"
+                style={{ borderLeftWidth: 3, borderLeftColor: URGENCIA_COR[s.urgencia] }}
+              >
                 <div className="mb-2 flex items-center justify-between gap-3">
                   <div className="flex items-center gap-3">
                     {s.temFoto && (
-                      <button type="button" onClick={() => abrirFoto(s.id)} className="flex h-6 w-6 shrink-0 items-center justify-center rounded bg-bg text-xs transition hover:bg-progress/20" title="Ver foto">📷</button>
+                      <button type="button" onClick={() => abrirFoto(s.id)} className="flex h-6 w-6 shrink-0 items-center justify-center rounded bg-surface-2 text-xs transition hover:bg-accent/10" title="Ver foto">📷</button>
                     )}
                     <div>
                       <div className="text-sm text-ink">{s.descricaoItem}</div>
@@ -349,7 +369,7 @@ export default function SolicitantePage() {
                   <select
                     value={s.urgencia}
                     onChange={(e) => alterarUrgencia(s.id, e.target.value)}
-                    className="rounded border border-panel-border bg-bg px-2 py-1 font-mono text-[11px] text-ink"
+                    className="rounded-lg border border-panel-border bg-surface-2 px-2 py-1 font-mono text-[11px] text-ink"
                     title="Alterar urgência"
                   >
                     {Object.entries(URGENCIA_LABELS).map(([k, v]) => (
@@ -371,19 +391,19 @@ export default function SolicitantePage() {
         <section>
           <button
             onClick={() => setMostrarHistorico((v) => !v)}
-            className="mb-3 flex items-center gap-2 font-display text-sm font-semibold uppercase tracking-wide text-dim hover:text-ink"
+            className="mb-3 flex items-center gap-2 font-display text-base font-semibold text-ink hover:text-accent"
           >
-            {mostrarHistorico ? "▾" : "▸"} Histórico ({concluidas.length})
+            {mostrarHistorico ? "▾" : "▸"} Histórico <span className="text-dim">({concluidas.length})</span>
           </button>
 
           {mostrarHistorico && (
             <>
               <div className="space-y-2">
                 {concluidasVisiveis.map((s) => (
-                  <div key={s.id} className="flex items-center justify-between gap-3 rounded border border-panel-border bg-panel px-4 py-3 opacity-70">
+                  <div key={s.id} className="flex items-center justify-between gap-3 rounded-2xl border border-panel-border bg-panel px-4 py-3 opacity-70">
                     <div className="flex items-center gap-3">
                       {s.temFoto && (
-                        <button type="button" onClick={() => abrirFoto(s.id)} className="flex h-6 w-6 shrink-0 items-center justify-center rounded bg-bg text-xs transition hover:bg-progress/20" title="Ver foto">📷</button>
+                        <button type="button" onClick={() => abrirFoto(s.id)} className="flex h-6 w-6 shrink-0 items-center justify-center rounded bg-surface-2 text-xs transition hover:bg-accent/10" title="Ver foto">📷</button>
                       )}
                       <div>
                         <div className="text-sm text-ink">{s.descricaoItem}</div>
@@ -413,18 +433,18 @@ export default function SolicitantePage() {
             </>
           )}
         </section>
-      </div>
+      </main>
 
       {mostrarModalLinha && (
         <LinhaPredefinidaModal onDefinir={confirmarLinhaPredefinida} onPular={fecharModalLinha} />
       )}
 
       <ImageLightbox src={fotoAmpliada} onClose={fecharFoto} />
-{carregandoFoto && (
-  <div className="fixed bottom-4 left-4 z-50 rounded border border-panel-border bg-panel px-3 py-2 font-mono text-xs text-dim">
-    Carregando foto...
-  </div>
-)}
-    </main>
+      {carregandoFoto && (
+        <div className="fixed bottom-4 left-4 z-50 rounded border border-panel-border bg-panel px-3 py-2 font-mono text-xs text-dim">
+          Carregando foto...
+        </div>
+      )}
+    </div>
   );
 }
