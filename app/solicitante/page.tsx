@@ -157,8 +157,6 @@ export default function SolicitantePage() {
     if (res.ok) await carregar(nome);
   }
 
-  if (!nome) return null;
-
   const ativas = minhas.filter((s) => s.status === "PENDENTE" || s.status === "EM_CURSO");
   const concluidas = minhas.filter((s) => s.status === "ENTREGUE" || s.status === "CANCELADA");
   const concluidasVisiveis = concluidas.slice(0, HISTORICO_LIMITE);
@@ -166,6 +164,8 @@ export default function SolicitantePage() {
     () => concluidas.filter((s) => s.status === "ENTREGUE" && s.entregueEm && mesmoDia(s.entregueEm)).length,
     [concluidas],
   );
+
+  if (!nome) return null;
 
   return (
     <div className="min-h-screen bg-bg">
