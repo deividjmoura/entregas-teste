@@ -18,6 +18,10 @@ module.exports = {
         cancel: "#6B7280",
         "card-ink": "var(--card-ink)",
         "card-dim": "var(--card-dim)",
+        accent: "rgb(var(--color-accent) / <alpha-value>)",
+        "accent-2": "rgb(var(--color-accent-2) / <alpha-value>)",
+        "surface-2": "rgb(var(--color-surface-2) / <alpha-value>)",
+        "sidebar-bg": "rgb(var(--color-sidebar-bg) / <alpha-value>)",
       },
       fontFamily: {
         display: ["var(--font-display)"],
@@ -32,6 +36,10 @@ module.exports = {
       },
       animation: {
         "pulse-led": "pulse-led 1.4s ease-in-out infinite",
+      },
+      boxShadow: {
+        premium: "0 20px 40px -15px rgba(0,0,0,0.45)",
+        "premium-sm": "0 8px 20px -8px rgba(0,0,0,0.35)",
       },
     },
   },
