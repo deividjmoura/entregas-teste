@@ -9,7 +9,6 @@ import { ImageLightbox } from "@/components/image-lightbox";
 import { OnlineBanner } from "@/components/online-banner";
 import { SkeletonList, EmptyState } from "@/components/skeleton";
 import { LocationCard } from "@/components/location-card";
-import { Sidebar, type SecaoAdmin } from "@/components/sidebar";
 import { Topbar } from "@/components/topbar";
 import { MetricCard } from "@/components/metric-card";
 import { IconRequests, IconTruck, IconUsers, IconDashboard } from "@/components/icons";
@@ -42,7 +41,6 @@ export default function PainelPage() {
   const router = useRouter();
   const user = useOptionalAuthUser();
   const [perfil, setPerfil] = useState<string | null>(null);
-  const [secao, setSecao] = useState<SecaoAdmin>("dashboard");
 
   const [ativos, setAtivos] = useState<SolicitacaoDTO[]>([]);
   const [entreguesRecentes, setEntreguesRecentes] = useState<SolicitacaoDTO[]>([]);
@@ -67,6 +65,12 @@ export default function PainelPage() {
     router.push("/");
   }
 
+  function limparFiltro() {
+    setBusca("");
+    setDesde("");
+    setAte("");
+  }
+
   const carregarDashboard = useCallback(async () => {
     const [resPendente, resEmCurso, resEntregue] = await Promise.all([
       fetch("/api/solicitacoes?status=PENDENTE&limit=200"),
@@ -78,8 +82,6 @@ export default function PainelPage() {
     const entregues = resEntregue.ok ? await resEntregue.json() : [];
 
     setAtivos([...pendentes, ...emCurso]);
-    // Filtra client-side pelas entregues HOJE (entregueEm), já que o
-    // endpoint só filtra por criadaEm.
     setEntreguesRecentes(
       (entregues as SolicitacaoDTO[]).filter((s) => s.entregueEm && mesmoDia(s.entregueEm)),
     );
@@ -141,259 +143,197 @@ export default function PainelPage() {
   const emCursoCount = useMemo(() => ativos.filter((s) => s.status === "EM_CURSO").length, [ativos]);
 
   return (
-    <div className="flex min-h-screen bg-bg">
-      <Sidebar ativo={secao} onNavegar={setSecao} />
+    <div className="min-h-screen bg-bg">
+      <Topbar
+        titulo="Painel de despacho"
+        busca={busca}
+        onBuscaChange={setBusca}
+        desde={desde}
+        ate={ate}
+        onDesdeChange={setDesde}
+        onAteChange={setAte}
+        onLimparFiltro={limparFiltro}
+        nomeUsuario={user?.displayName ?? user?.email ?? null}
+        onSair={user ? sair : undefined}
+        extra={
+          <div className="flex items-center gap-3">
+            <OnlineBanner />
+            {user && perfil && (
+              <button
+                onClick={() => router.push(`/${perfil}`)}
+                className="font-mono text-xs text-dim underline decoration-dotted hover:text-ink"
+              >
+                voltar
+              </button>
+            )}
+            {!user && (
+              <button
+                onClick={() => router.push("/")}
+                className="font-mono text-xs text-dim underline decoration-dotted hover:text-ink"
+              >
+                início
+              </button>
+            )}
+          </div>
+        }
+      />
 
-      <div className="flex min-h-screen flex-1 flex-col">
-        <Topbar
-          titulo="Painel de despacho"
-          busca={busca}
-          onBuscaChange={(v) => {
-            setBusca(v);
-            if (v.trim().length >= 5) setSecao("solicitacoes");
-          }}
-          nomeUsuario={user?.displayName ?? user?.email ?? null}
-          onSair={user ? sair : undefined}
-          extra={
-            <div className="flex items-center gap-3">
-              <OnlineBanner />
-              {user && perfil && (
-                <button
-                  onClick={() => router.push(`/${perfil}`)}
-                  className="font-mono text-xs text-dim underline decoration-dotted hover:text-ink"
-                >
-                  voltar
-                </button>
-              )}
-              {!user && (
-                <button
-                  onClick={() => router.push("/")}
-                  className="font-mono text-xs text-dim underline decoration-dotted hover:text-ink"
-                >
-                  início
-                </button>
+      <main className="mx-auto max-w-[1800px] px-6 py-6">
+        {!temFiltro && (
+          <>
+            <div className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
+              <MetricCard
+                label="Pendentes na fila"
+                value={pendentesCount}
+                icon={<IconRequests className="h-4 w-4" />}
+                accentColor="#F2B705"
+              />
+              <MetricCard
+                label="Em curso"
+                value={emCursoCount}
+                icon={<IconTruck className="h-4 w-4" />}
+                accentColor="#3EC1D3"
+              />
+              <MetricCard
+                label="Entregas hoje"
+                value={entreguesRecentes.length}
+                icon={<IconDashboard className="h-4 w-4" />}
+                accentColor="#4CAF6D"
+              />
+              <MetricCard
+                label="Rotas atendidas hoje"
+                value={rotasHoje.length}
+                icon={<IconUsers className="h-4 w-4" />}
+                accentColor="rgb(var(--color-accent))"
+                subtitle={rotasHoje.length > 0 ? rotasHoje.slice(0, 3).join(", ") : undefined}
+              />
+            </div>
+
+            {carregandoDashboard && <SkeletonList count={4} />}
+
+            {!carregandoDashboard && grupos.length === 0 && (
+              <EmptyState icon="✅" title="Nenhuma solicitação ativa" subtitle="A fila está limpa no momento" />
+            )}
+
+            {!carregandoDashboard && grupos.length > 0 && (
+              <div className="grid grid-cols-1 items-start gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                {grupos.map(({ local, lista, temLinhaParada }) => (
+                  <LocationCard key={local} local={local} contagem={lista.length} temLinhaParada={temLinhaParada}>
+                    {lista.map((s) => (
+                      <div key={s.id} className="rounded border border-panel-border/60 bg-bg/40 px-3 py-2">
+                        <div className="mb-1 flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2">
+                            <UrgencyDot
+                              pulse={s.urgencia === "CRITICA" || s.urgencia === "LINHA_PARADA"}
+                              color={URGENCIA_COR[s.urgencia]}
+                            />
+                            {s.temFoto && (
+                              <button type="button" onClick={() => abrirFoto(s.id)} className="text-xs" title="Ver foto">
+                                📷
+                              </button>
+                            )}
+                            <span className="text-sm text-ink">{s.descricaoItem}</span>
+                          </div>
+                          <StatusBadge status={s.status} />
+                        </div>
+                        <div className="flex flex-wrap items-center gap-x-2 font-mono text-[11px] text-dim">
+                          {s.rackOuSlide && (
+                            <>
+                              <span>{s.rackOuSlide}</span>
+                              <span>·</span>
+                            </>
+                          )}
+                          <span style={{ color: URGENCIA_COR[s.urgencia] }}>{URGENCIA_LABELS[s.urgencia]}</span>
+                          <span>·</span>
+                          <span>{s.solicitanteNome}</span>
+                          {s.entregadorNome && (
+                            <>
+                              <span>·</span>
+                              <span>{s.entregadorNome}</span>
+                            </>
+                          )}
+                          <span>·</span>
+                          <ElapsedTime since={s.criadaEm} alertAfterMinutes={5} />
+                        </div>
+                      </div>
+                    ))}
+                  </LocationCard>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+
+        {temFiltro && (
+          <section>
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="font-display text-lg font-semibold text-ink">Resultado da busca</h2>
+              {resultadosBusca !== null && (
+                <span className="font-mono text-[11px] text-dim">{resultadosBusca.length} resultado(s)</span>
               )}
             </div>
-          }
-        />
 
-        <main className="flex-1 overflow-y-auto px-6 py-6">
-          {secao === "dashboard" && (
-            <>
-              <div className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
-                <MetricCard
-                  label="Pendentes na fila"
-                  value={pendentesCount}
-                  icon={<IconRequests className="h-4 w-4" />}
-                  accentColor="#F2B705"
-                />
-                <MetricCard
-                  label="Em curso"
-                  value={emCursoCount}
-                  icon={<IconTruck className="h-4 w-4" />}
-                  accentColor="#3EC1D3"
-                />
-                <MetricCard
-                  label="Entregas hoje"
-                  value={entreguesRecentes.length}
-                  icon={<IconDashboard className="h-4 w-4" />}
-                  accentColor="#4CAF6D"
-                />
-                <MetricCard
-                  label="Rotas atendidas hoje"
-                  value={rotasHoje.length}
-                  icon={<IconUsers className="h-4 w-4" />}
-                  accentColor="rgb(var(--color-accent))"
-                  subtitle={rotasHoje.length > 0 ? rotasHoje.slice(0, 3).join(", ") : undefined}
-                />
-              </div>
-
-              {carregandoDashboard && <SkeletonList count={4} />}
-
-              {!carregandoDashboard && grupos.length === 0 && (
-                <EmptyState icon="✅" title="Nenhuma solicitação ativa" subtitle="A fila está limpa no momento" />
-              )}
-
-              {!carregandoDashboard && grupos.length > 0 && (
-                <div className="grid grid-cols-1 items-start gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                  {grupos.map(({ local, lista, temLinhaParada }) => (
-                    <LocationCard key={local} local={local} contagem={lista.length} temLinhaParada={temLinhaParada}>
-                      {lista.map((s) => (
-                        <div key={s.id} className="rounded border border-panel-border/60 bg-bg/40 px-3 py-2">
-                          <div className="mb-1 flex items-center justify-between gap-2">
-                            <div className="flex items-center gap-2">
-                              <UrgencyDot
-                                pulse={s.urgencia === "CRITICA" || s.urgencia === "LINHA_PARADA"}
-                                color={URGENCIA_COR[s.urgencia]}
-                              />
-                              {s.temFoto && (
-                                <button type="button" onClick={() => abrirFoto(s.id)} className="text-xs" title="Ver foto">
-                                  📷
-                                </button>
-                              )}
-                              <span className="text-sm text-ink">{s.descricaoItem}</span>
-                            </div>
-                            <StatusBadge status={s.status} />
-                          </div>
-                          <div className="flex flex-wrap items-center gap-x-2 font-mono text-[11px] text-dim">
-                            {s.rackOuSlide && (
-                              <>
-                                <span>{s.rackOuSlide}</span>
-                                <span>·</span>
-                              </>
-                            )}
-                            <span style={{ color: URGENCIA_COR[s.urgencia] }}>{URGENCIA_LABELS[s.urgencia]}</span>
-                            <span>·</span>
-                            <span>{s.solicitanteNome}</span>
-                            {s.entregadorNome && (
-                              <>
-                                <span>·</span>
-                                <span>{s.entregadorNome}</span>
-                              </>
-                            )}
-                            <span>·</span>
-                            <ElapsedTime since={s.criadaEm} alertAfterMinutes={5} />
-                          </div>
-                        </div>
-                      ))}
-                    </LocationCard>
-                  ))}
-                </div>
-              )}
-            </>
-          )}
-
-          {secao === "solicitacoes" && (
-            <section>
-              <div className="mb-4 flex items-center justify-between">
-                <h2 className="font-display text-lg font-semibold text-ink">Solicitações</h2>
-                {resultadosBusca !== null && (
-                  <span className="font-mono text-[11px] text-dim">{resultadosBusca.length} resultado(s)</span>
-                )}
-              </div>
-
-              <div className="mb-5 rounded-2xl border border-panel-border bg-panel p-4">
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="mb-1 block font-mono text-[11px] uppercase text-dim">De</label>
-                    <input
-                      type="datetime-local"
-                      value={desde}
-                      onChange={(e) => setDesde(e.target.value)}
-                      className="w-full rounded border border-panel-border bg-bg px-2 py-2 text-xs text-ink"
-                    />
-                  </div>
-                  <div>
-                    <label className="mb-1 block font-mono text-[11px] uppercase text-dim">Até</label>
-                    <input
-                      type="datetime-local"
-                      value={ate}
-                      onChange={(e) => setAte(e.target.value)}
-                      className="w-full rounded border border-panel-border bg-bg px-2 py-2 text-xs text-ink"
-                    />
-                  </div>
-                </div>
-                {busca.trim().length > 0 && busca.trim().length < 5 && (
-                  <p className="mt-2 font-mono text-[11px] text-dim">
-                    digite mais {5 - busca.trim().length} caractere{5 - busca.trim().length === 1 ? "" : "s"} na busca do topo...
-                  </p>
-                )}
-                {temFiltro && (
-                  <button
-                    onClick={() => {
-                      setBusca("");
-                      setDesde("");
-                      setAte("");
-                    }}
-                    className="mt-3 font-mono text-[11px] text-dim underline decoration-dotted hover:text-ink"
-                  >
-                    limpar filtro
-                  </button>
-                )}
-              </div>
-
-              {!temFiltro && (
-                <EmptyState
-                  icon="🔍"
-                  title="Use a busca no topo ou defina um período"
-                  subtitle="Digite ao menos 5 caracteres, ou escolha datas de/até"
-                />
-              )}
-              {temFiltro && buscando && resultadosBusca === null && <SkeletonList count={5} />}
-              {temFiltro && resultadosBusca !== null && resultadosBusca.length === 0 && !buscando && (
-                <EmptyState icon="🔍" title="Nenhuma solicitação encontrada" subtitle="Tente outro termo ou período" />
-              )}
-              {temFiltro && resultadosBusca !== null && resultadosBusca.length > 0 && (
-                <div className="space-y-2">
-                  {resultadosBusca.map((s) => (
-                    <div key={s.id} className="rounded border border-panel-border bg-panel px-4 py-3">
-                      <div className="mb-1 flex items-center justify-between gap-3">
-                        <div className="flex items-center gap-3">
-                          {s.temFoto && (
-                            <button
-                              type="button"
-                              onClick={() => abrirFoto(s.id)}
-                              className="flex h-6 w-6 shrink-0 items-center justify-center rounded bg-bg text-xs hover:bg-progress/20"
-                              title="Ver foto"
-                            >
-                              📷
-                            </button>
-                          )}
-                          <span className="text-sm text-ink">{s.descricaoItem}</span>
-                        </div>
-                        <StatusBadge status={s.status} />
-                      </div>
-                      <div className="flex flex-wrap items-center gap-x-2 font-mono text-[11px] text-dim">
-                        <span>{TIPO_LABELS[s.tipo]}</span>
-                        <span>·</span>
-                        <span>
-                          {s.localDestino}
-                          {s.rackOuSlide ? ` (${s.rackOuSlide})` : ""}
-                        </span>
-                        <span>·</span>
-                        <span>{URGENCIA_LABELS[s.urgencia]}</span>
-                        <span>·</span>
-                        <span>solicitado por {s.solicitanteNome}</span>
-                        {s.entregadorNome && (
-                          <>
-                            <span>·</span>
-                            <span>entregador: {s.entregadorNome}</span>
-                          </>
+            {buscando && resultadosBusca === null && <SkeletonList count={5} />}
+            {resultadosBusca !== null && resultadosBusca.length === 0 && !buscando && (
+              <EmptyState icon="🔍" title="Nenhuma solicitação encontrada" subtitle="Tente outro termo ou período" />
+            )}
+            {resultadosBusca !== null && resultadosBusca.length > 0 && (
+              <div className="space-y-2">
+                {resultadosBusca.map((s) => (
+                  <div key={s.id} className="rounded-2xl border border-panel-border bg-panel px-4 py-3">
+                    <div className="mb-1 flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        {s.temFoto && (
+                          <button
+                            type="button"
+                            onClick={() => abrirFoto(s.id)}
+                            className="flex h-6 w-6 shrink-0 items-center justify-center rounded bg-bg text-xs hover:bg-progress/20"
+                            title="Ver foto"
+                          >
+                            📷
+                          </button>
                         )}
-                        <span>·</span>
-                        <span>aberto às {formatarHora(s.criadaEm)}</span>
-                        {s.status === "ENTREGUE" && s.entregueEm && (
-                          <>
-                            <span>·</span>
-                            <span>entregue às {formatarHora(s.entregueEm)}</span>
-                            <span>·</span>
-                            <span className="text-success">
-                              levou {formatarDuracao(new Date(s.entregueEm).getTime() - new Date(s.criadaEm).getTime())}
-                            </span>
-                          </>
-                        )}
+                        <span className="text-sm text-ink">{s.descricaoItem}</span>
                       </div>
+                      <StatusBadge status={s.status} />
                     </div>
-                  ))}
-                </div>
-              )}
-            </section>
-          )}
-
-          {(secao === "solicitantes" || secao === "entregadores") && (
-            <section>
-              <h2 className="mb-4 font-display text-lg font-semibold text-ink">
-                {secao === "solicitantes" ? "Solicitantes Online" : "Entregadores Online"}
-              </h2>
-              <EmptyState
-                icon="🚧"
-                title="Detalhamento por papel ainda não disponível"
-                subtitle="Hoje o sistema só rastreia a contagem geral de sessões ativas (veja o indicador no topo). Separar por solicitante/entregador exige guardar o papel na tabela de presença — posso implementar isso no próximo passo se quiser."
-              />
-            </section>
-          )}
-        </main>
-      </div>
+                    <div className="flex flex-wrap items-center gap-x-2 font-mono text-[11px] text-dim">
+                      <span>{TIPO_LABELS[s.tipo]}</span>
+                      <span>·</span>
+                      <span>
+                        {s.localDestino}
+                        {s.rackOuSlide ? ` (${s.rackOuSlide})` : ""}
+                      </span>
+                      <span>·</span>
+                      <span>{URGENCIA_LABELS[s.urgencia]}</span>
+                      <span>·</span>
+                      <span>solicitado por {s.solicitanteNome}</span>
+                      {s.entregadorNome && (
+                        <>
+                          <span>·</span>
+                          <span>entregador: {s.entregadorNome}</span>
+                        </>
+                      )}
+                      <span>·</span>
+                      <span>aberto às {formatarHora(s.criadaEm)}</span>
+                      {s.status === "ENTREGUE" && s.entregueEm && (
+                        <>
+                          <span>·</span>
+                          <span>entregue às {formatarHora(s.entregueEm)}</span>
+                          <span>·</span>
+                          <span className="text-success">
+                            levou {formatarDuracao(new Date(s.entregueEm).getTime() - new Date(s.criadaEm).getTime())}
+                          </span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        )}
+      </main>
 
       <ImageLightbox src={fotoAmpliada} onClose={fecharFoto} />
       {carregandoFoto && (
