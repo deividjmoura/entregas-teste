@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
 // Considera "online" quem mandou heartbeat nos últimos 15s.
-const JANELA_ATIVOS_MS = 15_000;
+const JANELA_ATIVOS_MS = 20_000;
 // Limpa sessões velhas pra não acumular lixo na tabela.
 const JANELA_LIMPEZA_MS = 60_000;
 

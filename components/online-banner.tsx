@@ -1,9 +1,9 @@
 "use client";
 
-import { useOnlineCount } from "@/lib/use-online-count";
+import { usePresence } from "@/lib/presence-context";
 
 export function OnlineBanner() {
-  const online = useOnlineCount();
+  const online = usePresence();
 
   return (
     <div className="flex shrink-0 items-center gap-1.5 font-mono text-[11px] uppercase tracking-wide text-dim">

@@ -39,9 +39,18 @@ export function useOnlineCount(): number | null {
 
     heartbeat();
     const interval = setInterval(heartbeat, HEARTBEAT_MS);
+
+    // Reforça o heartbeat assim que a aba volta a ficar visível —
+    // mobile pausa/atrasa o setInterval em segundo plano.
+    function aoFicarVisivel() {
+      if (document.visibilityState === "visible") heartbeat();
+    }
+    document.addEventListener("visibilitychange", aoFicarVisivel);
+
     return () => {
       cancelado = true;
       clearInterval(interval);
+      document.removeEventListener("visibilitychange", aoFicarVisivel);
     };
   }, []);
 
