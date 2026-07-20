@@ -42,7 +42,7 @@ export function IconTruck({ className = "h-5 w-5" }: IconProps) {
   );
 }
 
-export function IconSearch({ className = "h-4.5 w-4.5" }: IconProps) {
+export function IconSearch({ className = "h-5 w-5" }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" fill="none" className={className}>
       <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="1.8" />
@@ -51,7 +51,7 @@ export function IconSearch({ className = "h-4.5 w-4.5" }: IconProps) {
   );
 }
 
-export function IconLogOut({ className = "h-4.5 w-4.5" }: IconProps) {
+export function IconLogOut({ className = "h-5 w-5" }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" fill="none" className={className}>
       <path d="M9 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h3" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />

@@ -40,7 +40,7 @@ export function Sidebar({ ativo, onNavegar }: SidebarProps) {
               }`}
             >
               <Icon
-                className={`h-4.5 w-4.5 shrink-0 transition ${
+                className={`h-5 w-5 shrink-0 transition ${
                   ativoAtual ? "text-accent" : "text-dim group-hover:text-ink"
                 }`}
               />
