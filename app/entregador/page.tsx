@@ -206,7 +206,7 @@ export default function EntregadorPage() {
           )}
 
           {grupos.length > 0 && (
-            <div className="grid grid-cols-1 items-start gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            <div className="grid items-start gap-3 [grid-template-columns:repeat(auto-fill,minmax(300px,1fr))]">
               {grupos.map(({ local, lista, temLinhaParada }) => (
                 <LocationCard
                   key={local}

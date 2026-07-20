@@ -8,20 +8,20 @@ interface MetricCardProps {
 
 export function MetricCard({ label, value, icon, accentColor = "rgb(var(--color-accent))", subtitle }: MetricCardProps) {
   return (
-    <div className="premium-card rounded-2xl border border-panel-border bg-panel p-5">
-      <div className="mb-3 flex items-center justify-between">
-        <span className="font-mono text-[11px] uppercase tracking-wide text-dim">{label}</span>
+    <div className="premium-card rounded-xl border border-panel-border bg-panel px-4 py-3">
+      <div className="mb-1.5 flex items-center justify-between">
+        <span className="font-mono text-[10px] uppercase tracking-wide text-dim">{label}</span>
         {icon && (
           <span
-            className="flex h-8 w-8 items-center justify-center rounded-full"
+            className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full"
             style={{ backgroundColor: `${accentColor}1a`, color: accentColor }}
           >
             {icon}
           </span>
         )}
       </div>
-      <div className="font-display text-3xl font-semibold text-ink">{value}</div>
-      {subtitle && <div className="mt-1 font-mono text-[11px] text-dim">{subtitle}</div>}
+      <div className="font-display text-xl font-semibold text-ink sm:text-2xl">{value}</div>
+      {subtitle && <div className="mt-0.5 truncate font-mono text-[10px] text-dim">{subtitle}</div>}
     </div>
   );
 }

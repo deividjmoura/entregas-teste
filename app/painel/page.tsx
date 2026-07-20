@@ -181,29 +181,29 @@ export default function PainelPage() {
       <main className="mx-auto max-w-[1800px] px-6 py-6">
         {!temFiltro && (
           <>
-            <div className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
+            <div className="mb-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
               <MetricCard
                 label="Pendentes na fila"
                 value={pendentesCount}
-                icon={<IconRequests className="h-4 w-4" />}
+                icon={<IconRequests className="h-3.5 w-3.5" />}
                 accentColor="#F2B705"
               />
               <MetricCard
                 label="Em curso"
                 value={emCursoCount}
-                icon={<IconTruck className="h-4 w-4" />}
+                icon={<IconTruck className="h-3.5 w-3.5" />}
                 accentColor="#3EC1D3"
               />
               <MetricCard
                 label="Entregas hoje"
                 value={entreguesRecentes.length}
-                icon={<IconDashboard className="h-4 w-4" />}
+                icon={<IconDashboard className="h-3.5 w-3.5" />}
                 accentColor="#4CAF6D"
               />
               <MetricCard
                 label="Rotas atendidas hoje"
                 value={rotasHoje.length}
-                icon={<IconUsers className="h-4 w-4" />}
+                icon={<IconUsers className="h-3.5 w-3.5" />}
                 accentColor="rgb(var(--color-accent))"
                 subtitle={rotasHoje.length > 0 ? rotasHoje.slice(0, 3).join(", ") : undefined}
               />
@@ -216,7 +216,7 @@ export default function PainelPage() {
             )}
 
             {!carregandoDashboard && grupos.length > 0 && (
-              <div className="grid grid-cols-1 items-start gap-3 sm:grid-cols-2 xl:grid-cols-3">
+              <div className="grid items-start gap-3 [grid-template-columns:repeat(auto-fill,minmax(300px,1fr))]">
                 {grupos.map(({ local, lista, temLinhaParada }) => (
                   <LocationCard key={local} local={local} contagem={lista.length} temLinhaParada={temLinhaParada}>
                     {lista.map((s) => (
