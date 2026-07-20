@@ -47,6 +47,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <AuthProvider>
         <ModalNome />
         {children}
+        <ThemeToggle />
         </AuthProvider>
       </body>
     </html>
