@@ -5,10 +5,11 @@ import { useState } from "react";
 interface LinhaPredefinidaModalProps {
   onDefinir: (linha: string) => void;
   onPular: () => void;
+  valorInicial?: string;
 }
 
-export function LinhaPredefinidaModal({ onDefinir, onPular }: LinhaPredefinidaModalProps) {
-  const [valor, setValor] = useState("");
+export function LinhaPredefinidaModal({ onDefinir, onPular, valorInicial = "" }: LinhaPredefinidaModalProps) {
+  const [valor, setValor] = useState(valorInicial);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-6">

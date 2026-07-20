@@ -1,16 +1,14 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef, useMemo } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { signOut } from "firebase/auth";
 import { StatusBadge } from "@/components/status-badge";
 import { ElapsedTime } from "@/components/elapsed-time";
 import { ImageLightbox } from "@/components/image-lightbox";
 import { LinhaPredefinidaModal } from "@/components/linha-predefinida-modal";
-import { MetricCard } from "@/components/metric-card";
-import { IconRequests, IconDashboard } from "@/components/icons";
 import { resizeImageToBase64 } from "@/lib/image-utils";
-import { TIPO_LABELS, URGENCIA_LABELS, URGENCIA_COR, formatarHora, formatarDuracao, mesmoDia, type SolicitacaoDTO } from "@/lib/domain";
+import { TIPO_LABELS, URGENCIA_LABELS, URGENCIA_COR, formatarHora, formatarDuracao, type SolicitacaoDTO } from "@/lib/domain";
 import { useAuthUser } from "@/lib/use-auth-user";
 import { useFotoAmpliada } from "@/lib/use-foto-ampliada";
 import { useLinhaPredefinida } from "@/lib/use-linha-predefinida";
@@ -60,7 +58,7 @@ export default function SolicitantePage() {
 
   function confirmarLinhaPredefinida(valor: string) {
     definirLinhaPredefinida(valor);
-    setLocalDestino((atual) => atual || valor.trim().toUpperCase());
+    setLocalDestino(valor.trim().toUpperCase());
     fecharModalLinha();
   }
 
@@ -160,10 +158,6 @@ export default function SolicitantePage() {
   const ativas = minhas.filter((s) => s.status === "PENDENTE" || s.status === "EM_CURSO");
   const concluidas = minhas.filter((s) => s.status === "ENTREGUE" || s.status === "CANCELADA");
   const concluidasVisiveis = concluidas.slice(0, HISTORICO_LIMITE);
-  const entreguesHoje = useMemo(
-    () => concluidas.filter((s) => s.status === "ENTREGUE" && s.entregueEm && mesmoDia(s.entregueEm)).length,
-    [concluidas],
-  );
 
   if (!nome) return null;
 
@@ -188,21 +182,7 @@ export default function SolicitantePage() {
       </header>
 
       <main className="mx-auto max-w-2xl px-6 py-6 pb-16">
-        <div className="mb-6 grid grid-cols-2 gap-4">
-          <MetricCard
-            label="Em andamento"
-            value={ativas.length}
-            icon={<IconRequests className="h-4 w-4" />}
-            accentColor="#F2B705"
-          />
-          <MetricCard
-            label="Entregues hoje"
-            value={entreguesHoje}
-            icon={<IconDashboard className="h-4 w-4" />}
-            accentColor="#4CAF6D"
-          />
-        </div>
-
+        
         <form onSubmit={abrirSolicitacao} className="mb-8 rounded-2xl border border-panel-border bg-panel p-5 shadow-premium-sm">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="font-display text-base font-semibold text-ink">Abrir urgência</h2>
@@ -436,7 +416,11 @@ export default function SolicitantePage() {
       </main>
 
       {mostrarModalLinha && (
-        <LinhaPredefinidaModal onDefinir={confirmarLinhaPredefinida} onPular={fecharModalLinha} />
+        <LinhaPredefinidaModal
+          onDefinir={confirmarLinhaPredefinida}
+          onPular={fecharModalLinha}
+          valorInicial={linhaPredefinida ?? ""}
+        />
       )}
 
       <ImageLightbox src={fotoAmpliada} onClose={fecharFoto} />
