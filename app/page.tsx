@@ -4,11 +4,13 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { signInWithPopup } from "firebase/auth";
 import { auth, googleProvider } from "@/lib/firebase";
+import { useAuth } from "@/lib/auth-context";
 
 export default function Home() {
   const router = useRouter();
   const [entrando, setEntrando] = useState<"solicitante" | "entregador" | null>(null);
   const [erro, setErro] = useState<string | null>(null);
+  const { abrirModalVisitante } = useAuth();
 
   async function entrarComGoogle(perfil: "solicitante" | "entregador") {
     setEntrando(perfil);
@@ -71,11 +73,17 @@ export default function Home() {
           </div>
         </div>
         <button
-            onClick={() => router.push("/painel")}
-            className="mt-4 w-full text-center font-mono text-xs text-dim underline decoration-dotted hover:text-ink"
-          >
-            Ver fila de solicitações sem login →
-            </button>
+  onClick={abrirModalVisitante}
+  className="mt-4 w-full text-center font-mono text-xs text-dim underline decoration-dotted hover:text-ink"
+>
+  Entrar como visitante →
+</button>
+<button
+    onClick={() => router.push("/painel")}
+    className="mt-2 w-full text-center font-mono text-xs text-dim underline decoration-dotted hover:text-ink"
+  >
+    Ver fila de solicitações sem login →
+    </button>
         <p className="mt-6 text-center font-mono text-[11px] text-dim">Autenticado via Google — nenhuma senha própria armazenada<br></br>Feito com muito ☕ e ❤️ por&nbsp;
           <a href="https://deividmoura.netlify.app/" target="_blank" rel="noopener noreferrer" className="hover:underline hover:text-white transition-colors">Deivid Moura</a>
         </p>

@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Space_Grotesk, IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
 import { ThemeToggle } from "@/components/theme-toggle";
 import "./globals.css";
+import { AuthProvider } from "@/lib/auth-context";
+import { ModalNome } from "@/components/modal-nome";
 
 const display = Space_Grotesk({
   subsets: ["latin"],
@@ -42,8 +44,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body className={`${display.variable} ${body.variable} ${mono.variable} font-body`}>
+        <AuthProvider>
+        <ModalNome />
         {children}
-        <ThemeToggle />
+        </AuthProvider>
       </body>
     </html>
   );

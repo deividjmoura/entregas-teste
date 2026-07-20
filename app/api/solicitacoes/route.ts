@@ -20,7 +20,7 @@ const CAMPOS_LISTAGEM = {
 
 export async function GET(request: NextRequest) {
   const status = request.nextUrl.searchParams.get("status");
-  const solicitanteNome = request.nextUrl.searchParams.get("solicitanteNome");
+  const solicitanteNome = request.nextUrl.searchParams.get("nome");
   const q = request.nextUrl.searchParams.get("q");
   const desde = request.nextUrl.searchParams.get("desde");
   const ate = request.nextUrl.searchParams.get("ate");
