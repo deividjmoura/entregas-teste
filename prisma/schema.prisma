@@ -13,6 +13,7 @@ model Solicitacao {
   descricaoItem   String
   localDestino    String
   rackOuSlide     String?
+  enderecoEstoque String?
   foto            String?   @db.Text
   temFoto         Boolean   @default(false)
   urgencia        String
@@ -22,13 +23,51 @@ model Solicitacao {
   versao          Int       @default(1)
   criadaEm        DateTime  @default(now())
   atualizadaEm    DateTime  @updatedAt
-  entregueEm      DateTime? // marcado só quando status vira ENTREGUE — usado pra medir tempo de despacho
+  entregueEm      DateTime?
+
+  mensagens       Mensagem[]
 
   @@index([status, urgencia])
 }
 
-// Contador simples de "usuários online" pro banner de demo — cada aba manda
-// heartbeat a cada 5s, e consideramos online quem bateu nos últimos 15s.
+model ItemEstoque {
+  id            String   @id @default(uuid())
+  nomeItem      String   @unique
+  endereco      String?
+  foto          String?  @db.Text
+  criadoEm      DateTime @default(now())
+  atualizadoEm  DateTime @updatedAt
+
+  historicoEndereco HistoricoEnderecoEstoque[]
+
+  @@index([nomeItem])
+}
+
+// Guarda só quem mudou o endereço e quando — não versiona a foto,
+// só o endereço, que é o campo que o entregador pode alterar.
+model HistoricoEnderecoEstoque {
+  id             String      @id @default(uuid())
+  itemId         String
+  item           ItemEstoque @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  enderecoAntigo String?
+  enderecoNovo   String?
+  alteradoPor    String
+  alteradoEm     DateTime    @default(now())
+
+  @@index([itemId, alteradoEm])
+}
+model Mensagem {
+  id            String      @id @default(uuid())
+  solicitacaoId String
+  solicitacao   Solicitacao @relation(fields: [solicitacaoId], references: [id], onDelete: Cascade)
+  autorNome     String
+  autorTipo     String
+  texto         String
+  criadaEm      DateTime    @default(now())
+
+  @@index([solicitacaoId, criadaEm])
+}
+
 model Presenca {
   sessionId    String   @id
   atualizadaEm DateTime @updatedAt

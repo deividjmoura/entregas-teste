@@ -13,6 +13,8 @@ import { useAuthUser } from "@/lib/use-auth-user";
 import { useFotoAmpliada } from "@/lib/use-foto-ampliada";
 import { useLinhaPredefinida } from "@/lib/use-linha-predefinida";
 import { auth } from "@/lib/firebase";
+import { EnderecoEstoque } from "@/components/endereco-estoque";
+import { ChatPanel } from "@/components/chat-panel";
 
 const HISTORICO_LIMITE = 5;
 const CHAVE_JA_PERGUNTOU = "entregas:linhaPerguntada";
@@ -25,6 +27,7 @@ export default function SolicitantePage() {
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
   const [mostrarHistorico, setMostrarHistorico] = useState(false);
+  const [chatAberto, setChatAberto] = useState<string | null>(null);
 
   const { linha: linhaPredefinida, carregado: linhaCarregada, setLinha: definirLinhaPredefinida } =
     useLinhaPredefinida();
@@ -39,6 +42,7 @@ export default function SolicitantePage() {
   const [processandoFoto, setProcessandoFoto] = useState(false);
   const { foto: fotoAmpliada, carregando: carregandoFoto, abrir: abrirFoto, fechar: fecharFoto } = useFotoAmpliada();
   const inputFotoRef = useRef<HTMLInputElement>(null);
+
 
   useEffect(() => {
     if (!linhaCarregada) return;
@@ -331,16 +335,32 @@ export default function SolicitantePage() {
                     )}
                     <div>
                       <div className="text-sm text-ink">{s.descricaoItem}</div>
-                      <div className="font-mono text-[11px] text-dim">
-                        {s.localDestino}{s.rackOuSlide ? ` (${s.rackOuSlide})` : ""} · {TIPO_LABELS[s.tipo]}
-                        {s.entregadorNome ? ` · ${s.entregadorNome}` : ""}
-                        {" · aberto às "}{formatarHora(s.criadaEm)}
+                      <div className="flex flex-wrap items-center gap-1 font-mono text-[11px] text-dim">
+                        <span>
+                          {s.localDestino}{s.rackOuSlide ? ` (${s.rackOuSlide})` : ""} · {TIPO_LABELS[s.tipo]}
+                          {s.entregadorNome ? ` · ${s.entregadorNome}` : ""}
+                          {" · aberto às "}{formatarHora(s.criadaEm)}
+                        </span>
+                        <EnderecoEstoque
+                          solicitacaoId={s.id}
+                          endereco={s.enderecoEstoque ?? null}
+                          onAtualizado={() => {}}
+                          somenteLeitura
+                        />
                       </div>
                     </div>
                   </div>
                   <div className="flex shrink-0 items-center gap-2">
                     {s.status === "PENDENTE" && (
                       <ElapsedTime since={s.criadaEm} alertAfterMinutes={5} className="font-mono text-[11px] text-dim" />
+                    )}
+                    {s.status === "EM_CURSO" && (
+                      <button
+                        onClick={() => setChatAberto(s.id)}
+                        className="rounded border border-progress/40 px-2 py-1 font-mono text-[11px] font-semibold text-progress hover:bg-progress/10"
+                      >
+                        💬 Chat
+                      </button>
                     )}
                     <StatusBadge status={s.status} />
                   </div>
@@ -423,6 +443,14 @@ export default function SolicitantePage() {
         />
       )}
 
+      {chatAberto && (
+        <ChatPanel
+          solicitacaoId={chatAberto}
+          autorNome={nome!}
+          autorTipo="SOLICITANTE"
+          onClose={() => setChatAberto(null)}
+        />
+      )}
       <ImageLightbox src={fotoAmpliada} onClose={fecharFoto} />
       {carregandoFoto && (
         <div className="fixed bottom-4 left-4 z-50 rounded border border-panel-border bg-panel px-3 py-2 font-mono text-xs text-dim">

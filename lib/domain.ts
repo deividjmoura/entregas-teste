@@ -37,7 +37,8 @@ export interface SolicitacaoDTO {
   descricaoItem: string;
   localDestino: string;
   rackOuSlide: string | null;
-  temFoto: boolean; // antes: foto: string | null
+  enderecoEstoque: string | null;
+  temFoto: boolean;
   urgencia: string;
   status: string;
   solicitanteNome: string;

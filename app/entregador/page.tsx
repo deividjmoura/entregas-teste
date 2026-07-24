@@ -13,6 +13,8 @@ import {
 import { UrgencyDot } from "@/components/status-badge";
 import { ElapsedTime } from "@/components/elapsed-time";
 import { ImageLightbox } from "@/components/image-lightbox";
+import { EnderecoEstoque } from "@/components/endereco-estoque";
+import { ChatPanel } from "@/components/chat-panel";
 import { LocationCard } from "@/components/location-card";
 import { useAuthUser } from "@/lib/use-auth-user";
 import { useFotoAmpliada } from "@/lib/use-foto-ampliada";
@@ -35,6 +37,7 @@ export default function EntregadorPage() {
   const [erro, setErro] = useState<string | null>(null);
   const [assumindo, setAssumindo] = useState<string | null>(null);
   const { foto: fotoAmpliada, carregando: carregandoFoto, abrir: abrirFoto, fechar: fecharFoto } = useFotoAmpliada();
+  const [chatAberto, setChatAberto] = useState<string | null>(null);
 
   async function sair() {
     await signOut(auth);
@@ -54,6 +57,13 @@ export default function EntregadorPage() {
       const data: SolicitacaoDTO[] = await resEmCurso.json();
       setMinhasEmCurso(data);
     }
+  }, []);
+  const atualizarLocal = useCallback((id: string, novoEndereco: string | null) => {
+    const atualizarLista = (lista: SolicitacaoDTO[]) =>
+      lista.map((s) => (s.id === id ? { ...s, enderecoEstoque: novoEndereco } : s));
+
+    setPendentes(atualizarLista);
+    setMinhasEmCurso(atualizarLista);
   }, []);
 
   useEffect(() => {
@@ -164,29 +174,40 @@ export default function EntregadorPage() {
                         📷
                       </button>
                     )}
-                    <div>
-                      <div className="text-sm text-ink">{s.descricaoItem}</div>
-                      <div className="flex flex-wrap items-center gap-1.5 font-mono text-[11px] text-dim">
-                        <UrgencyDot color={URGENCIA_COR[s.urgencia]} />
-                        <span style={{ color: URGENCIA_COR[s.urgencia] }}>{URGENCIA_LABELS[s.urgencia]}</span>
-                        <span>· {TIPO_LABELS[s.tipo]}</span>
-                        <span>
-                          · {s.localDestino}
-                          {s.rackOuSlide ? ` (${s.rackOuSlide})` : ""}
-                        </span>
-                        <span>· solicitado por {s.solicitanteNome}</span>
-                        <ElapsedTime since={s.criadaEm} alertAfterMinutes={5} />
+                     <div>
+                        <div className="text-sm text-ink">{s.descricaoItem}</div>
+                        <div className="flex flex-wrap items-center gap-1.5 font-mono text-[11px] text-dim">
+                          <UrgencyDot color={URGENCIA_COR[s.urgencia]} />
+                          <span style={{ color: URGENCIA_COR[s.urgencia] }}>{URGENCIA_LABELS[s.urgencia]}</span>
+                          <span>· {TIPO_LABELS[s.tipo]}</span>
+                          <span>·</span>
+                          <EnderecoEstoque
+                            solicitacaoId={s.id}
+                            endereco={s.enderecoEstoque}
+                            onAtualizado={(novo) => atualizarLocal(s.id, novo)}
+                            nomeUsuario={nome}
+                             />
+                        </div>
                       </div>
                     </div>
+                    <div className="flex shrink-0 gap-2">
+                      <button
+                        onClick={() => setChatAberto(s.id)}
+                        className="rounded border border-progress/40 px-3 py-1.5 font-display text-xs font-semibold text-progress hover:bg-progress/10"
+                      >
+                        💬 Chat
+                      </button>
+                      <button
+                        onClick={() => confirmar(s.id)}
+                        className="rounded bg-success px-3 py-1.5 font-display text-xs font-semibold text-bg hover:brightness-110"
+                      >
+                        Confirmar entrega
+                      </button>
+                    </div>
+              
+                  
                   </div>
-                  <button
-                    onClick={() => confirmar(s.id)}
-                    className="shrink-0 rounded bg-success px-3 py-1.5 font-display text-xs font-semibold text-bg hover:brightness-110"
-                  >
-                    Confirmar entrega
-                  </button>
-                </div>
-              ))}
+                ))}
             </div>
           </section>
         )}
@@ -267,12 +288,18 @@ export default function EntregadorPage() {
         </section>
       </div>
 
-      <ImageLightbox src={fotoAmpliada} onClose={fecharFoto} />
-{carregandoFoto && (
-  <div className="fixed bottom-4 left-4 z-50 rounded border border-panel-border bg-panel px-3 py-2 font-mono text-xs text-dim">
-    Carregando foto...
-  </div>
-)}
+      <ImageLightbox
+  src={fotoAmpliada}
+  onClose={fecharFoto}
+/>
+      {chatAberto && (
+        <ChatPanel
+          solicitacaoId={chatAberto}
+          autorNome={nome!}
+          autorTipo="ENTREGADOR"
+          onClose={() => setChatAberto(null)}
+        />
+      )}
     </main>
   );
 }
