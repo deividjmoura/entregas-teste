@@ -17,8 +17,6 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     return NextResponse.json({ erro: "Solicitação não encontrada" }, { status: 404 });
   }
 
-  // Busca ignorando maiúsculas/minúsculas — "Parafuso M8" e "parafuso m8"
-  // são o mesmo item de estoque.
   let item = await prisma.itemEstoque.findFirst({
     where: { nomeItem: { equals: solicitacao.descricaoItem, mode: "insensitive" } },
   });
@@ -34,7 +32,6 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       });
     }
   } else {
-    // Primeira entrega desse item — cria o cadastro automaticamente.
     item = await prisma.itemEstoque.create({
       data: { nomeItem: solicitacao.descricaoItem, endereco: enderecoEstoque },
     });
@@ -53,7 +50,10 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
 
   const atualizada = await prisma.solicitacao.update({
     where: { id: params.id },
-    data: { enderecoEstoque },
+    data: {
+      enderecoEstoque,
+      enderecoAlteradoPor: mudou ? alteradoPor : solicitacao.enderecoAlteradoPor,
+    },
   });
 
   return NextResponse.json(atualizada);

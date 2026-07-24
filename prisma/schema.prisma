@@ -8,24 +8,25 @@ datasource db {
 }
 
 model Solicitacao {
-  id              String    @id @default(uuid())
-  tipo            String
-  descricaoItem   String
-  localDestino    String
-  rackOuSlide     String?
-  enderecoEstoque String?
-  foto            String?   @db.Text
-  temFoto         Boolean   @default(false)
-  urgencia        String
-  status          String    @default("PENDENTE")
-  solicitanteNome String
-  entregadorNome  String?
-  versao          Int       @default(1)
-  criadaEm        DateTime  @default(now())
-  atualizadaEm    DateTime  @updatedAt
-  entregueEm      DateTime?
+  id                  String    @id @default(uuid())
+  tipo                String
+  descricaoItem       String
+  localDestino        String
+  rackOuSlide         String?
+  enderecoEstoque     String?
+  enderecoAlteradoPor String?
+  foto                String?   @db.Text
+  temFoto             Boolean   @default(false)
+  urgencia            String
+  status              String    @default("PENDENTE")
+  solicitanteNome     String
+  entregadorNome      String?
+  versao              Int       @default(1)
+  criadaEm            DateTime  @default(now())
+  atualizadaEm        DateTime  @updatedAt
+  entregueEm          DateTime?
 
-  mensagens       Mensagem[]
+  mensagens           Mensagem[]
 
   @@index([status, urgencia])
 }

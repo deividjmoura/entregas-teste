@@ -7,8 +7,9 @@ interface EnderecoEstoqueProps {
   endereco: string | null;
   onAtualizado: (novoEndereco: string | null) => void;
   somenteLeitura?: boolean;
-  /** Nome de quem está editando — obrigatório fora do modo somenteLeitura */
   nomeUsuario?: string;
+  /** Quem foi o último a alterar o endereço deste item */
+  alteradoPor?: string | null;
 }
 
 export function EnderecoEstoque({
@@ -17,11 +18,16 @@ export function EnderecoEstoque({
   onAtualizado,
   somenteLeitura = false,
   nomeUsuario,
+  alteradoPor,
 }: EnderecoEstoqueProps) {
   const [aberto, setAberto] = useState(false);
   const [valor, setValor] = useState(endereco ?? "");
   const [salvando, setSalvando] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setValor(endereco ?? "");
+  }, [endereco]);
 
   useEffect(() => {
     function fecharFora(e: MouseEvent) {
@@ -32,7 +38,7 @@ export function EnderecoEstoque({
   }, [aberto]);
 
   async function salvar() {
-    if (!nomeUsuario) return; // não deveria ser chamável sem nome (fora do modo somenteLeitura)
+    if (!nomeUsuario) return;
     setSalvando(true);
     try {
       const res = await fetch(`/api/solicitacoes/${solicitacaoId}/endereco`, {
@@ -52,25 +58,32 @@ export function EnderecoEstoque({
     }
   }
 
+  const badge = (conteudo: string, classe: string) => (
+    <span className={`group/end relative inline-flex items-center rounded px-1.5 py-0.5 font-mono text-[11px] ${classe}`}>
+      {conteudo}
+      {endereco && alteradoPor && (
+        <span className="pointer-events-none absolute -top-7 left-1/2 z-30 w-max -translate-x-1/2 rounded bg-bg px-2 py-1 text-[10px] normal-case text-ink opacity-0 shadow-lg ring-1 ring-panel-border transition-opacity group-hover/end:opacity-100">
+          alterado por {alteradoPor}
+        </span>
+      )}
+    </span>
+  );
+
   if (somenteLeitura) {
     if (!endereco) return null;
-    return (
-      <span className="rounded bg-progress/15 px-1.5 py-0.5 font-mono text-[11px] text-progress">
-        📍 {endereco}
-      </span>
-    );
+    return badge(`📍 ${endereco}`, "bg-progress/15 text-progress");
   }
 
   return (
     <div ref={ref} className="relative inline-block">
-      <button
-        type="button"
-        onClick={() => setAberto((v) => !v)}
-        className={`rounded px-1.5 py-0.5 font-mono text-[11px] underline decoration-dotted ${
-          endereco ? "text-progress hover:text-ink" : "text-dim hover:text-ink"
-        }`}
-      >
-        {endereco ? `📍 ${endereco}` : "+ endereço no estoque"}
+      <button type="button" onClick={() => setAberto((v) => !v)} className="align-middle">
+        {endereco
+          ? badge(`📍 ${endereco}`, "text-progress underline decoration-dotted hover:text-ink")
+          : (
+            <span className="rounded px-1.5 py-0.5 font-mono text-[11px] text-dim underline decoration-dotted hover:text-ink">
+              + endereço no estoque
+            </span>
+          )}
       </button>
 
       {aberto && (
@@ -83,15 +96,14 @@ export function EnderecoEstoque({
             value={valor}
             onChange={(e) => setValor(e.target.value.toUpperCase())}
             placeholder="Ex: G03A05"
-            className="mb-2 w-full rounded border border-panel-border bg-bg px-2 py-1.5 font-mono text-sm uppercase text-ink focus:border-progress"
+            className="mb-1 w-full rounded border border-panel-border bg-bg px-2 py-1.5 font-mono text-sm uppercase text-ink focus:border-progress"
             onKeyDown={(e) => e.key === "Enter" && salvar()}
           />
+          {endereco && alteradoPor && (
+            <p className="mb-2 font-mono text-[10px] text-dim">último a alterar: {alteradoPor}</p>
+          )}
           <div className="flex justify-end gap-2">
-            <button
-              type="button"
-              onClick={() => setAberto(false)}
-              className="font-mono text-[11px] text-dim hover:text-ink"
-            >
+            <button type="button" onClick={() => setAberto(false)} className="font-mono text-[11px] text-dim hover:text-ink">
               cancelar
             </button>
             <button

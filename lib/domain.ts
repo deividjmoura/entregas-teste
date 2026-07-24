@@ -46,6 +46,7 @@ export interface SolicitacaoDTO {
   criadaEm: string;
   atualizadaEm: string;
   entregueEm: string | null;
+  enderecoAlteradoPor: string | null;
 }
 
 export function formatarHora(iso: string): string {

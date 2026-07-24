@@ -58,9 +58,11 @@ export default function EntregadorPage() {
       setMinhasEmCurso(data);
     }
   }, []);
-  const atualizarLocal = useCallback((id: string, novoEndereco: string | null) => {
+  const atualizarLocal = useCallback((id: string, novoEndereco: string | null, novoAlteradoPor: string) => {
     const atualizarLista = (lista: SolicitacaoDTO[]) =>
-      lista.map((s) => (s.id === id ? { ...s, enderecoEstoque: novoEndereco } : s));
+      lista.map((s) =>
+        s.id === id ? { ...s, enderecoEstoque: novoEndereco, enderecoAlteradoPor: novoAlteradoPor } : s,
+      );
 
     setPendentes(atualizarLista);
     setMinhasEmCurso(atualizarLista);
@@ -184,9 +186,10 @@ export default function EntregadorPage() {
                           <EnderecoEstoque
                             solicitacaoId={s.id}
                             endereco={s.enderecoEstoque}
-                            onAtualizado={(novo) => atualizarLocal(s.id, novo)}
+                            alteradoPor={s.enderecoAlteradoPor}
+                            onAtualizado={(novo) => atualizarLocal(s.id, novo, nome!)}
                             nomeUsuario={nome}
-                             />
+                          />
                         </div>
                       </div>
                     </div>

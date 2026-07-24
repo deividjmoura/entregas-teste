@@ -16,6 +16,8 @@ const CAMPOS_LISTAGEM = {
   criadaEm: true,
   atualizadaEm: true,
   entregueEm: true,
+  enderecoEstoque: true,
+  enderecoAlteradoPor: true,
 } as const;
 
 export async function GET(request: NextRequest) {
