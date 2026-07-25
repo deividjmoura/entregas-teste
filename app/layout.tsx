@@ -4,6 +4,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import "./globals.css";
 import { AuthProvider } from "@/lib/auth-context";
 import { PresenceProvider } from "@/lib/presence-context";
+import { NotificacoesProvider } from "@/lib/use-notificacoes-chat";
 import { ModalNome } from "@/components/modal-nome";
 
 const display = Space_Grotesk({
@@ -47,9 +48,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className={`${display.variable} ${body.variable} ${mono.variable} font-body`}>
         <AuthProvider>
         <PresenceProvider>
+        <NotificacoesProvider>
         <ModalNome />
         {children}
         <ThemeToggle />
+        </NotificacoesProvider>
         </PresenceProvider>
         </AuthProvider>
       </body>
