@@ -1,58 +1,50 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: { id: string } },
-) {
-  const mensagens = await prisma.mensagem.findMany({
-    where: { solicitacaoId: params.id },
-    orderBy: { criadaEm: "asc" },
-  });
+const URGENCIAS_VALIDAS = ["BAIXA", "MEDIA", "CRITICA", "LINHA_PARADA"];
 
-  return NextResponse.json(mensagens);
-}
-
-export async function POST(
+export async function PATCH(
   request: NextRequest,
   { params }: { params: { id: string } },
 ) {
   const body = await request.json();
-  const { autorNome, autorTipo, texto } = body;
+  const { urgencia } = body;
 
-  if (!autorNome || !autorTipo || !texto?.trim()) {
-    return NextResponse.json(
-      { erro: "Campos obrigatórios faltando" },
-      { status: 400 },
-    );
+  if (!URGENCIAS_VALIDAS.includes(urgencia)) {
+    return NextResponse.json({ erro: "Urgência inválida" }, { status: 400 });
   }
 
-  if (!["SOLICITANTE", "ENTREGADOR"].includes(autorTipo)) {
-    return NextResponse.json(
-      { erro: "autorTipo inválido" },
-      { status: 400 },
-    );
-  }
-
-  const solicitacao = await prisma.solicitacao.findUnique({
-    where: { id: params.id },
+  const resultado = await prisma.solicitacao.updateMany({
+    where: { id: params.id, status: { in: ["PENDENTE", "EM_CURSO"] } },
+    data: { urgencia },
   });
 
-  if (!solicitacao || solicitacao.status !== "EM_CURSO") {
+  if (resultado.count === 0) {
     return NextResponse.json(
-      { erro: "Chat só está disponível enquanto a entrega está em curso" },
+      { erro: "Só é possível alterar a urgência de solicitações pendentes ou em curso" },
       { status: 409 },
     );
   }
 
-  const mensagem = await prisma.mensagem.create({
-    data: {
-      solicitacaoId: params.id,
-      autorNome: String(autorNome).trim(),
-      autorTipo,
-      texto: String(texto).trim(),
-    },
+  const atualizada = await prisma.solicitacao.findUnique({ where: { id: params.id } });
+  return NextResponse.json(atualizada);
+}
+
+export async function DELETE(
+  _request: NextRequest,
+  { params }: { params: { id: string } },
+) {
+  const resultado = await prisma.solicitacao.updateMany({
+    where: { id: params.id, status: { not: "ENTREGUE" } },
+    data: { status: "CANCELADA" },
   });
 
-  return NextResponse.json(mensagem, { status: 201 });
+  if (resultado.count === 0) {
+    return NextResponse.json(
+      { erro: "Não é possível cancelar uma solicitação já entregue" },
+      { status: 409 },
+    );
+  }
+
+  return NextResponse.json({ ok: true });
 }

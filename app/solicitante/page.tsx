@@ -42,6 +42,7 @@ export default function SolicitantePage() {
   const [processandoFoto, setProcessandoFoto] = useState(false);
   const { foto: fotoAmpliada, carregando: carregandoFoto, abrir: abrirFoto, fechar: fecharFoto } = useFotoAmpliada();
   const inputFotoRef = useRef<HTMLInputElement>(null);
+  const [mensagensNaoLidas, setMensagensNaoLidas] = useState<Record<string, number>>({});
 
 
   useEffect(() => {
@@ -77,11 +78,38 @@ export default function SolicitantePage() {
   }, []);
 
   useEffect(() => {
-    if (!nome) return;
-    carregar(nome);
-    const interval = setInterval(() => carregar(nome), 3000);
-    return () => clearInterval(interval);
-  }, [nome, carregar]);
+  if (!nome) return;
+  carregar(nome);
+  const interval = setInterval(() => carregar(nome), 3000);
+  return () => clearInterval(interval);
+}, [nome, carregar]);
+
+useEffect(() => {
+  if (!nome) return;
+
+  const verificarMensagens = async () => {
+    try {
+      const res = await fetch("/api/solicitacoes/minhas-mensagens-nao-lidas");
+      if (res.ok) {
+        const data = await res.json();
+        setMensagensNaoLidas(data);
+      }
+    } catch (e) {
+      console.error("Erro ao buscar notificações", e);
+    }
+  };
+
+  verificarMensagens();
+  const interval = setInterval(verificarMensagens, 4000); // verifica a cada 4s
+
+  return () => clearInterval(interval);
+}, [nome]);
+
+useEffect(() => {
+  if (Notification.permission === "default") {
+    Notification.requestPermission();
+  }
+}, []);
 
   async function handleFotoChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -156,7 +184,12 @@ export default function SolicitantePage() {
     if (!nome) return;
     if (!confirm("Remover esta solicitação? Ela será marcada como cancelada.")) return;
     const res = await fetch(`/api/solicitacoes/${id}`, { method: "DELETE" });
-    if (res.ok) await carregar(nome);
+    if (res.ok) {
+      await carregar(nome);
+    } else {
+      const data = await res.json().catch(() => null);
+      setErro(data?.erro ?? "Falha ao remover solicitação");
+    }
   }
 
   const ativas = minhas.filter((s) => s.status === "PENDENTE" || s.status === "EM_CURSO");
@@ -356,11 +389,16 @@ export default function SolicitantePage() {
                     )}
                     {s.status === "EM_CURSO" && (
                       <button
-                        onClick={() => setChatAberto(s.id)}
-                        className="rounded border border-progress/40 px-2 py-1 font-mono text-[11px] font-semibold text-progress hover:bg-progress/10"
-                      >
-                        💬 Chat
-                      </button>
+  onClick={() => setChatAberto(s.id)}
+  className="relative rounded border border-progress/40 px-2 py-1 font-mono text-[11px] font-semibold text-progress hover:bg-progress/10"
+>
+  💬 Chat
+  {mensagensNaoLidas[s.id] > 0 && (
+    <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-critical text-[10px] font-bold text-white">
+      {mensagensNaoLidas[s.id] > 9 ? "9+" : mensagensNaoLidas[s.id]}
+    </span>
+  )}
+</button>
                     )}
                     <StatusBadge status={s.status} />
                   </div>

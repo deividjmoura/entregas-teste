@@ -74,6 +74,11 @@ export default function EntregadorPage() {
     const interval = setInterval(carregar, 2500);
     return () => clearInterval(interval);
   }, [nome, carregar]);
+  useEffect(() => {
+  if (Notification.permission === "default") {
+    Notification.requestPermission();
+  }
+}, []);
 
   async function assumir(id: string) {
     if (!nome) return;
