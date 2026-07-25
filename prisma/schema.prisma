@@ -25,6 +25,8 @@ model Solicitacao {
   criadaEm            DateTime  @default(now())
   atualizadaEm        DateTime  @updatedAt
   entregueEm          DateTime?
+  lidaSolicitanteEm   DateTime?
+  lidaEntregadorEm    DateTime?
 
   mensagens           Mensagem[]
 

@@ -26,8 +26,26 @@ export function ChatPanel({ solicitacaoId, autorNome, autorTipo, onClose }: Chat
   const fimRef = useRef<HTMLDivElement>(null);
   const ultimaMensagemId = useRef<string | null>(null);
 
+  // Pede permissão de notificação nativa assim que o chat é aberto
+  useEffect(() => {
+    if (typeof window === "undefined" || !("Notification" in window)) return;
+    if (Notification.permission === "default") {
+      Notification.requestPermission().catch(() => {});
+    }
+  }, []);
+
   useEffect(() => {
     let cancelado = false;
+
+    async function marcarComoLida() {
+      try {
+        await fetch(`/api/solicitacoes/${solicitacaoId}/mensagens/lida`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ tipo: autorTipo }),
+        });
+      } catch {}
+    }
 
     async function carregar() {
       const res = await fetch(`/api/solicitacoes/${solicitacaoId}/mensagens`);
@@ -41,12 +59,12 @@ export function ChatPanel({ solicitacaoId, autorNome, autorTipo, onClose }: Chat
           ultima.id !== ultimaMensagemId.current &&
           ultima.autorNome !== autorNome
         ) {
-          // Notificação visual + sonora
           mostrarNotificacao(ultima);
         }
 
         ultimaMensagemId.current = ultima?.id || null;
         setMensagens(novasMensagens);
+        marcarComoLida();
       }
     }
 
@@ -57,7 +75,7 @@ export function ChatPanel({ solicitacaoId, autorNome, autorTipo, onClose }: Chat
       cancelado = true;
       clearInterval(interval);
     };
-  }, [solicitacaoId, autorNome]);
+  }, [solicitacaoId, autorNome, autorTipo]);
 
   const mostrarNotificacao = (mensagem: Mensagem) => {
     // Notificação sonora
@@ -83,7 +101,6 @@ export function ChatPanel({ solicitacaoId, autorNome, autorTipo, onClose }: Chat
     fimRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [mensagens.length]);
 
-
   async function enviar() {
     if (!texto.trim()) return;
     setEnviando(true);
@@ -104,14 +121,6 @@ export function ChatPanel({ solicitacaoId, autorNome, autorTipo, onClose }: Chat
     }
   }
 
-  useEffect(() => {
-    if (typeof window === "undefined" || !("Notification" in window)) return;
-    if (Notification.permission === "default") {
-      Notification.requestPermission().catch(() => {});
-    }
-  }, []);
-
-   
   return (
     <div className="fixed inset-x-4 bottom-4 z-30 mx-auto flex h-96 max-w-sm flex-col overflow-hidden rounded-xl border border-panel-border bg-panel shadow-2xl sm:right-4 sm:left-auto">
       <div className="flex shrink-0 items-center justify-between border-b border-panel-border px-3 py-2.5">

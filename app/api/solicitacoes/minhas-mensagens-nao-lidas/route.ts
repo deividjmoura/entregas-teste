@@ -3,36 +3,38 @@ import { prisma } from "@/lib/prisma";
 
 export async function GET(request: NextRequest) {
   const nome = request.nextUrl.searchParams.get("nome");
-  const tipo = request.nextUrl.searchParams.get("tipo"); // "SOLICITANTE" | "ENTREGADOR"
+  const tipo = request.nextUrl.searchParams.get("tipo");
 
   if (!nome || !tipo) {
     return NextResponse.json({});
   }
 
   const campoFiltro = tipo === "ENTREGADOR" ? "entregadorNome" : "solicitanteNome";
+  const campoLida = tipo === "ENTREGADOR" ? "lidaEntregadorEm" : "lidaSolicitanteEm";
 
-  const solicitacoesComMensagens = await prisma.solicitacao.findMany({
+  const solicitacoes = await prisma.solicitacao.findMany({
     where: {
       [campoFiltro]: nome,
       status: "EM_CURSO",
     },
     select: {
       id: true,
+      [campoLida]: true,
       mensagens: {
-        where: {
-          autorNome: { not: nome },
-        },
-        select: { id: true },
+        where: { autorNome: { not: nome } },
+        select: { criadaEm: true },
       },
     },
   });
 
   const naoLidas: Record<string, number> = {};
 
-  solicitacoesComMensagens.forEach((s) => {
-    if (s.mensagens.length > 0) {
-      naoLidas[s.id] = s.mensagens.length;
-    }
+  solicitacoes.forEach((s: any) => {
+    const lidaEm: Date | null = s[campoLida];
+    const contagem = lidaEm
+      ? s.mensagens.filter((m: { criadaEm: Date }) => new Date(m.criadaEm) > lidaEm).length
+      : s.mensagens.length;
+    if (contagem > 0) naoLidas[s.id] = contagem;
   });
 
   return NextResponse.json(naoLidas);
