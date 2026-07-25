@@ -65,8 +65,13 @@ export function ChatPanel({ solicitacaoId, autorNome, autorTipo, onClose }: Chat
     audio.volume = 0.6;
     audio.play().catch(() => {});
 
-    // Notificação visual (se o chat estiver fechado)
-    if (document.visibilityState === "hidden" || !document.hasFocus()) {
+    // Notificação visual (só dispara se o usuário já concedeu permissão
+    // e o chat estiver fora de foco/fechado)
+    if (
+      "Notification" in window &&
+      Notification.permission === "granted" &&
+      (document.visibilityState === "hidden" || !document.hasFocus())
+    ) {
       new Notification("Nova mensagem no chat", {
         body: `${mensagem.autorNome}: ${mensagem.texto.substring(0, 60)}${mensagem.texto.length > 60 ? "..." : ""}`,
         icon: "/favicon.ico",
@@ -78,7 +83,7 @@ export function ChatPanel({ solicitacaoId, autorNome, autorTipo, onClose }: Chat
     fimRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [mensagens.length]);
 
-  // ... resto do componente continua igual (enviar, JSX, etc)
+
   async function enviar() {
     if (!texto.trim()) return;
     setEnviando(true);
@@ -99,9 +104,27 @@ export function ChatPanel({ solicitacaoId, autorNome, autorTipo, onClose }: Chat
     }
   }
 
+  useEffect(() => {
+    if (typeof window === "undefined" || !("Notification" in window)) return;
+    if (Notification.permission === "default") {
+      Notification.requestPermission().catch(() => {});
+    }
+  }, []);
+
+   
   return (
     <div className="fixed inset-x-4 bottom-4 z-30 mx-auto flex h-96 max-w-sm flex-col overflow-hidden rounded-xl border border-panel-border bg-panel shadow-2xl sm:right-4 sm:left-auto">
-      {/* ... header igual ... */}
+      <div className="flex shrink-0 items-center justify-between border-b border-panel-border px-3 py-2.5">
+        <span className="font-display text-sm font-semibold text-ink">Chat</span>
+        <button
+          type="button"
+          onClick={onClose}
+          className="font-mono text-xs text-dim hover:text-ink"
+          title="Fechar"
+        >
+          ✕
+        </button>
+      </div>
 
       <div className="scroll-area min-h-0 flex-1 space-y-2 overflow-y-auto px-3 py-3">
         {mensagens.length === 0 && (
@@ -121,7 +144,23 @@ export function ChatPanel({ solicitacaoId, autorNome, autorTipo, onClose }: Chat
         <div ref={fimRef} />
       </div>
 
-      {/* ... input igual ... */}
+      <div className="flex shrink-0 items-center gap-2 border-t border-panel-border p-2.5">
+        <input
+          value={texto}
+          onChange={(e) => setTexto(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && !enviando && enviar()}
+          placeholder="Digite uma mensagem..."
+          className="flex-1 rounded-lg border border-panel-border bg-bg px-3 py-2 text-sm text-ink placeholder:text-dim/60 focus:border-progress"
+        />
+        <button
+          type="button"
+          onClick={enviar}
+          disabled={enviando || !texto.trim()}
+          className="shrink-0 rounded-lg bg-progress px-3 py-2 font-display text-xs font-semibold text-bg hover:brightness-110 disabled:opacity-50"
+        >
+          {enviando ? "..." : "Enviar"}
+        </button>
+      </div>
     </div>
   );
-}   
+}
