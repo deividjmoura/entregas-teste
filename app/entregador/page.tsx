@@ -19,6 +19,7 @@ import { LocationCard } from "@/components/location-card";
 import { useAuthUser } from "@/lib/use-auth-user";
 import { useFotoAmpliada } from "@/lib/use-foto-ampliada";
 import { auth } from "@/lib/firebase";
+import { useNotificacoes } from "@/lib/use-notificacoes-chat";
 
 function ordenarGrupo(lista: SolicitacaoDTO[]): SolicitacaoDTO[] {
   return [...lista].sort((a, b) => {
@@ -38,6 +39,7 @@ export default function EntregadorPage() {
   const [assumindo, setAssumindo] = useState<string | null>(null);
   const { foto: fotoAmpliada, carregando: carregandoFoto, abrir: abrirFoto, fechar: fecharFoto } = useFotoAmpliada();
   const [chatAberto, setChatAberto] = useState<string | null>(null);
+  const { mensagensNaoLidas, limparNotificacoes } = useNotificacoes();
 
   async function sair() {
     await signOut(auth);
@@ -207,11 +209,19 @@ export default function EntregadorPage() {
                       </div>
                     </div>
                     <div className="flex shrink-0 gap-2">
-                      <button
-                        onClick={() => setChatAberto(s.id)}
-                        className="rounded border border-progress/40 px-3 py-1.5 font-display text-xs font-semibold text-progress hover:bg-progress/10"
+                                            <button
+                        onClick={() => {
+                          limparNotificacoes(s.id);
+                          setChatAberto(s.id);
+                        }}
+                        className="relative rounded border border-progress/40 px-3 py-1.5 font-display text-xs font-semibold text-progress hover:bg-progress/10"
                       >
                         💬 Chat
+                        {mensagensNaoLidas[s.id] > 0 && (
+                          <span className="absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-critical px-1 font-mono text-[9px] font-bold text-white">
+                            {mensagensNaoLidas[s.id]}
+                          </span>
+                        )}
                       </button>
                       <button
                         onClick={() => confirmar(s.id)}
