@@ -132,6 +132,14 @@ export default function EntregadorPage() {
 
   if (!nome) return null;
 
+  useEffect(() => {
+    if (!chatAberto) return;
+    const atual = minhasEmCurso.find((s) => s.id === chatAberto);
+    if (!atual || atual.status !== "EM_CURSO") {
+      setChatAberto(null);
+    }
+  }, [minhasEmCurso, chatAberto]);
+
   return (
     <main className="mx-auto w-full max-w-[1800px] px-6">
       <header className="mb-8 mt-10 flex items-center justify-between">

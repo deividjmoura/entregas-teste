@@ -198,6 +198,14 @@ useEffect(() => {
 
   if (!nome) return null;
 
+  useEffect(() => {
+    if (!chatAberto) return;
+    const atual = minhas.find((s) => s.id === chatAberto);
+    if (!atual || atual.status !== "EM_CURSO") {
+      setChatAberto(null);
+    }
+  }, [minhas, chatAberto]);
+
   return (
     <div className="min-h-screen bg-bg">
       <header className="sticky top-0 z-10 flex items-center justify-between border-b border-panel-border/60 bg-bg/70 px-6 py-4 backdrop-blur-md">
