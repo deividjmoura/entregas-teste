@@ -4,11 +4,28 @@ interface MetricCardProps {
   icon?: React.ReactNode;
   accentColor?: string;
   subtitle?: string;
+  onClick?: () => void;
+  ativo?: boolean;
 }
 
-export function MetricCard({ label, value, icon, accentColor = "rgb(var(--color-accent))", subtitle }: MetricCardProps) {
+export function MetricCard({
+  label,
+  value,
+  icon,
+  accentColor = "rgb(var(--color-accent))",
+  subtitle,
+  onClick,
+  ativo = false,
+}: MetricCardProps) {
+  const Wrapper = onClick ? "button" : "div";
+
   return (
-    <div className="premium-card rounded-xl border border-panel-border bg-panel px-4 py-3">
+    <Wrapper
+      onClick={onClick}
+      className={`premium-card rounded-xl border bg-panel px-4 py-3 text-left transition-all duration-200 ${
+        onClick ? "cursor-pointer hover:-translate-y-0.5" : ""
+      } ${ativo ? "border-accent ring-2 ring-accent/30" : "border-panel-border"}`}
+    >
       <div className="mb-1.5 flex items-center justify-between">
         <span className="font-mono text-[10px] uppercase tracking-wide text-dim">{label}</span>
         {icon && (
@@ -22,6 +39,6 @@ export function MetricCard({ label, value, icon, accentColor = "rgb(var(--color-
       </div>
       <div className="font-display text-xl font-semibold text-ink sm:text-2xl">{value}</div>
       {subtitle && <div className="mt-0.5 truncate font-mono text-[10px] text-dim">{subtitle}</div>}
-    </div>
+    </Wrapper>
   );
 }
