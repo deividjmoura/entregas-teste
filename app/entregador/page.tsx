@@ -130,8 +130,6 @@ export default function EntregadorPage() {
       });
   }, [pendentes]);
 
-  if (!nome) return null;
-
   useEffect(() => {
     if (!chatAberto) return;
     const atual = minhasEmCurso.find((s) => s.id === chatAberto);
@@ -139,6 +137,8 @@ export default function EntregadorPage() {
       setChatAberto(null);
     }
   }, [minhasEmCurso, chatAberto]);
+
+  if (!nome) return null;
 
   return (
     <main className="mx-auto w-full max-w-[1800px] px-6">

@@ -196,15 +196,15 @@ useEffect(() => {
   const concluidas = minhas.filter((s) => s.status === "ENTREGUE" || s.status === "CANCELADA");
   const concluidasVisiveis = concluidas.slice(0, HISTORICO_LIMITE);
 
-  if (!nome) return null;
-
-  useEffect(() => {
+    useEffect(() => {
     if (!chatAberto) return;
     const atual = minhas.find((s) => s.id === chatAberto);
     if (!atual || atual.status !== "EM_CURSO") {
       setChatAberto(null);
     }
   }, [minhas, chatAberto]);
+
+  if (!nome) return null;
 
   return (
     <div className="min-h-screen bg-bg">
