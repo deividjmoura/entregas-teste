@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 export function ModalNome() {
   const router = useRouter();
@@ -43,7 +45,7 @@ export function ModalNome() {
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-sm rounded-lg border border-panel-border bg-panel p-6"
+        className="w-full max-w-sm rounded-2xl border border-panel-border bg-panel p-6"
       >
         <h2 className="mb-1 font-display text-sm font-semibold text-ink">
           Entrar como visitante
@@ -52,18 +54,18 @@ export function ModalNome() {
           Sem senha, sem conta Google — só um nome pra identificar suas ações.
         </p>
 
-        <input
+        <Input
           autoFocus
           value={valor}
           onChange={(e) => setValor(e.target.value)}
           placeholder="Seu nome"
-          className="mb-3 w-full rounded border border-panel-border bg-bg px-3 py-2 text-sm text-ink outline-none placeholder:text-dim/60 focus:border-progress"
+          className="mb-3"
         />
 
         <div className="mb-4 grid grid-cols-2 gap-2">
           <button
             onClick={() => setPerfil("solicitante")}
-            className={`rounded border px-3 py-2 font-mono text-xs ${
+            className={`rounded-xl border px-3 py-2 font-mono text-xs transition-colors ${
               perfil === "solicitante"
                 ? "border-progress bg-progress/10 text-ink"
                 : "border-panel-border text-dim hover:text-ink"
@@ -73,7 +75,7 @@ export function ModalNome() {
           </button>
           <button
             onClick={() => setPerfil("entregador")}
-            className={`rounded border px-3 py-2 font-mono text-xs ${
+            className={`rounded-xl border px-3 py-2 font-mono text-xs transition-colors ${
               perfil === "entregador"
                 ? "border-urgent bg-urgent/10 text-ink"
                 : "border-panel-border text-dim hover:text-ink"
@@ -86,19 +88,18 @@ export function ModalNome() {
         {erro && <p className="mb-3 text-xs text-critical">{erro}</p>}
 
         <div className="flex gap-2">
-          <button
-            onClick={fechar}
-            className="flex-1 rounded border border-panel-border px-3 py-2 font-mono text-xs text-dim hover:text-ink"
-          >
+          <Button variant="secondary" size="md" className="flex-1" onClick={fechar}>
             Cancelar
-          </button>
-          <button
-            onClick={confirmar}
+          </Button>
+          <Button
+            variant="warning"
+            size="md"
+            className="flex-1"
             disabled={!valor.trim() || !perfil || enviando}
-            className="flex-1 rounded bg-urgent px-3 py-2 font-display text-xs font-semibold text-bg hover:brightness-110 disabled:opacity-40"
+            onClick={confirmar}
           >
             {enviando ? "Entrando..." : "Entrar"}
-          </button>
+          </Button>
         </div>
       </div>
     </div>

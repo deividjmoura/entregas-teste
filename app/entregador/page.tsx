@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect, useMemo } from "react";
+import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { signOut } from "firebase/auth";
 import {
@@ -20,12 +20,27 @@ import { useAuthUser } from "@/lib/use-auth-user";
 import { useFotoAmpliada } from "@/lib/use-foto-ampliada";
 import { auth } from "@/lib/firebase";
 import { useNotificacoes } from "@/lib/use-notificacoes-chat";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 
 function ordenarGrupo(lista: SolicitacaoDTO[]): SolicitacaoDTO[] {
   return [...lista].sort((a, b) => {
     const pesoDiff = URGENCIA_PESO[b.urgencia] - URGENCIA_PESO[a.urgencia];
     if (pesoDiff !== 0) return pesoDiff;
     return new Date(a.criadaEm).getTime() - new Date(b.criadaEm).getTime();
+  });
+}
+
+// Notifica só quando a urgência é NOVA (não existia no poll anterior) —
+// evita disparar notificação pra tudo que já estava pendente no primeiro load.
+function notificarNovaUrgencia(s: SolicitacaoDTO) {
+  if (typeof window === "undefined" || !("Notification" in window)) return;
+  if (Notification.permission !== "granted") return;
+  if (document.visibilityState === "visible" && document.hasFocus()) return;
+
+  new Notification("Nova urgência na fila", {
+    body: `${s.descricaoItem} · ${s.localDestino}${s.rackOuSlide ? ` (${s.rackOuSlide})` : ""}`,
+    icon: "/favicon.ico",
   });
 }
 
@@ -40,6 +55,7 @@ export default function EntregadorPage() {
   const { foto: fotoAmpliada, carregando: carregandoFoto, abrir: abrirFoto, fechar: fecharFoto } = useFotoAmpliada();
   const [chatAberto, setChatAberto] = useState<string | null>(null);
   const { mensagensNaoLidas, limparNotificacoes } = useNotificacoes();
+  const pendentesIdsRef = useRef<Set<string> | null>(null);
 
   async function sair() {
     await signOut(auth);
@@ -53,6 +69,13 @@ export default function EntregadorPage() {
     ]);
     if (resPendentes.ok) {
       const data: SolicitacaoDTO[] = await resPendentes.json();
+
+      if (pendentesIdsRef.current) {
+        const novas = data.filter((s) => !pendentesIdsRef.current!.has(s.id));
+        novas.forEach(notificarNovaUrgencia);
+      }
+      pendentesIdsRef.current = new Set(data.map((s) => s.id));
+
       setPendentes(data);
     }
     if (resEmCurso.ok) {
@@ -149,21 +172,28 @@ export default function EntregadorPage() {
           <div className="font-mono text-xs uppercase tracking-[0.2em] text-dim">entregador</div>
           <h1 className="font-display text-2xl font-semibold text-ink">Olá, {nome}</h1>
         </div>
-        <div className="flex items-center gap-4">
-          <button
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="font-mono normal-case font-medium"
             onClick={() => router.push("/painel")}
-            className="font-mono text-xs text-dim underline decoration-dotted hover:text-ink"
           >
             painel geral
-          </button>
-          <button onClick={sair} className="font-mono text-xs text-dim underline decoration-dotted hover:text-ink">
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="font-mono normal-case font-medium"
+            onClick={sair}
+          >
             sair
-          </button>
+          </Button>
         </div>
       </header>
 
       {erro && (
-        <div className="mb-5 rounded border border-critical/40 bg-critical/10 px-4 py-2.5 text-sm text-critical">
+        <div className="mb-5 rounded-xl border border-critical/40 bg-critical/10 px-4 py-2.5 text-sm text-critical">
           {erro}
         </div>
       )}
@@ -178,14 +208,14 @@ export default function EntregadorPage() {
               {minhasProprias.map((s) => (
                 <div
                   key={s.id}
-                  className="flex flex-col gap-3 rounded-lg border border-progress/40 bg-progress/10 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
+                  className="flex flex-col gap-3 rounded-xl border border-progress/40 bg-progress/10 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
                 >
                   <div className="flex items-center gap-3">
                     {s.temFoto && (
                       <button
                         type="button"
                         onClick={() => abrirFoto(s.id)}
-                        className="flex h-6 w-6 shrink-0 items-center justify-center rounded bg-bg text-xs hover:bg-progress/20"
+                        className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-bg text-xs transition-colors hover:bg-progress/20"
                         title="Ver foto"
                       >
                         📷
@@ -209,12 +239,14 @@ export default function EntregadorPage() {
                       </div>
                     </div>
                     <div className="flex shrink-0 gap-2">
-                      <button
+                      <Button
+                        variant="outline-progress"
+                        size="sm"
+                        className="relative"
                         onClick={() => {
                           limparNotificacoes(s.id);
                           setChatAberto(s.id);
                         }}
-                        className="relative rounded border border-progress/40 px-3 py-1.5 font-display text-xs font-semibold text-progress hover:bg-progress/10"
                       >
                         💬 Chat
                         {mensagensNaoLidas[s.id] > 0 && (
@@ -222,13 +254,10 @@ export default function EntregadorPage() {
                             {mensagensNaoLidas[s.id]}
                           </span>
                         )}
-                      </button>
-                      <button
-                        onClick={() => confirmar(s.id)}
-                        className="rounded bg-success px-3 py-1.5 font-display text-xs font-semibold text-bg hover:brightness-110"
-                      >
+                      </Button>
+                      <Button variant="success" size="sm" onClick={() => confirmar(s.id)}>
                         Confirmar entrega
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 ))}
@@ -245,9 +274,9 @@ export default function EntregadorPage() {
           </div>
 
           {grupos.length === 0 && (
-            <p className="rounded border border-panel-border bg-panel px-4 py-6 text-center text-sm text-dim">
+            <Card className="px-4 py-6 text-center text-sm text-dim">
               Nenhuma urgência pendente no momento.
-            </p>
+            </Card>
           )}
 
           {grupos.length > 0 && (
@@ -262,7 +291,7 @@ export default function EntregadorPage() {
                   {lista.map((s) => (
                     <div
                       key={s.id}
-                      className="rounded border px-3 py-2"
+                      className="rounded-lg border px-3 py-2"
                       style={{ borderColor: "var(--card-row-border)", backgroundColor: "var(--card-row-bg)" }}
                       >
                       <div className="mb-1 flex items-center justify-between gap-2">
@@ -283,13 +312,14 @@ export default function EntregadorPage() {
                           )}
                           <span className="text-sm text-card-ink">{s.descricaoItem}</span>
                         </div>
-                        <button
-                          onClick={() => assumir(s.id)}
+                        <Button
+                          variant="warning"
+                          size="sm"
                           disabled={assumindo === s.id}
-                          className="shrink-0 rounded bg-urgent px-2 py-1 font-display text-[11px] font-semibold text-bg transition hover:brightness-110 disabled:opacity-50"
+                          onClick={() => assumir(s.id)}
                         >
                           {assumindo === s.id ? "..." : "Assumir"}
-                        </button>
+                        </Button>
                       </div>
                       <div className="flex flex-wrap items-center gap-x-2 font-mono text-[11px] text-card-dim">
                         {s.rackOuSlide && (

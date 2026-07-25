@@ -16,6 +16,9 @@ import { auth } from "@/lib/firebase";
 import { EnderecoEstoque } from "@/components/endereco-estoque";
 import { ChatPanel } from "@/components/chat-panel";
 import { useNotificacoes } from "@/lib/use-notificacoes-chat";
+import { Button } from "@/components/ui/button";
+import { Input, Select } from "@/components/ui/input";
+import { Card } from "@/components/ui/card";
 
 const HISTORICO_LIMITE = 5;
 const CHAVE_JA_PERGUNTOU = "entregas:linhaPerguntada";
@@ -55,6 +58,15 @@ export default function SolicitantePage() {
       setMostrarModalLinha(true);
     }
   }, [linhaCarregada, linhaPredefinida]);
+
+  // Igual ao entregador — pede permissão de notificação (usada pelo chat)
+  // assim que a página carrega, e não só ao abrir uma conversa.
+  useEffect(() => {
+    if (typeof window === "undefined" || !("Notification" in window)) return;
+    if (Notification.permission === "default") {
+      Notification.requestPermission();
+    }
+  }, []);
 
   function fecharModalLinha() {
     sessionStorage.setItem(CHAVE_JA_PERGUNTOU, "1");
@@ -187,16 +199,23 @@ export default function SolicitantePage() {
           <div className="font-mono text-xs uppercase tracking-[0.2em] text-dim">solicitante</div>
           <h1 className="font-display text-lg font-semibold text-ink">Olá, {nome}</h1>
         </div>
-        <div className="flex items-center gap-4">
-          <button
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="font-mono normal-case font-medium"
             onClick={() => router.push("/painel")}
-            className="font-mono text-xs text-dim underline decoration-dotted hover:text-ink"
           >
             painel geral
-          </button>
-          <button onClick={sair} className="font-mono text-xs text-dim underline decoration-dotted hover:text-ink">
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="font-mono normal-case font-medium"
+            onClick={sair}
+          >
             sair
-          </button>
+          </Button>
         </div>
       </header>
 
@@ -217,27 +236,19 @@ export default function SolicitantePage() {
           <div className="mb-4 grid grid-cols-2 gap-3">
             <div>
               <label className="mb-1 block font-mono text-[11px] uppercase text-dim">Tipo</label>
-              <select
-                value={tipo}
-                onChange={(e) => setTipo(e.target.value)}
-                className="w-full rounded-lg border border-panel-border bg-surface-2 px-3 py-2 text-sm text-ink"
-              >
+              <Select value={tipo} onChange={(e) => setTipo(e.target.value)}>
                 {Object.entries(TIPO_LABELS).map(([k, v]) => (
                   <option key={k} value={k}>{v}</option>
                 ))}
-              </select>
+              </Select>
             </div>
             <div>
               <label className="mb-1 block font-mono text-[11px] uppercase text-dim">Urgência</label>
-              <select
-                value={urgencia}
-                onChange={(e) => setUrgencia(e.target.value)}
-                className="w-full rounded-lg border border-panel-border bg-surface-2 px-3 py-2 text-sm text-ink"
-              >
+              <Select value={urgencia} onChange={(e) => setUrgencia(e.target.value)}>
                 {Object.entries(URGENCIA_LABELS).map(([k, v]) => (
                   <option key={k} value={k}>{v}</option>
                 ))}
-              </select>
+              </Select>
             </div>
           </div>
 
@@ -245,12 +256,12 @@ export default function SolicitantePage() {
             <label className="mb-1 block font-mono text-[11px] uppercase text-dim">
               Item <span className="text-critical">*</span>
             </label>
-            <input
+            <Input
               value={descricaoItem}
               onChange={(e) => setDescricaoItem(e.target.value)}
               placeholder="ex: resistor 10k"
               required
-              className="w-full rounded-lg border border-panel-border bg-surface-2 px-3 py-2 text-sm uppercase text-ink placeholder:normal-case placeholder:text-dim/60"
+              className="uppercase placeholder:normal-case"
             />
           </div>
 
@@ -259,23 +270,23 @@ export default function SolicitantePage() {
               <label className="mb-1 block font-mono text-[11px] uppercase text-dim">
                 Local de destino <span className="text-critical">*</span>
               </label>
-              <input
+              <Input
                 value={localDestino}
                 onChange={(e) => setLocalDestino(e.target.value)}
                 placeholder="ex: Linha de montagem 3"
                 required
-                className="w-full rounded-lg border border-panel-border bg-surface-2 px-3 py-2 text-sm uppercase text-ink placeholder:normal-case placeholder:text-dim/60"
+                className="uppercase placeholder:normal-case"
               />
             </div>
             <div>
               <label className="mb-1 block font-mono text-[11px] uppercase text-dim">
                 Rack / Slide <span className="text-dim">(opcional)</span>
               </label>
-              <input
+              <Input
                 value={rackOuSlide}
                 onChange={(e) => setRackOuSlide(e.target.value)}
                 placeholder="ex: Rack A3 / Slide 12"
-                className="w-full rounded-lg border border-panel-border bg-surface-2 px-3 py-2 text-sm uppercase text-ink placeholder:normal-case placeholder:text-dim/60"
+                className="uppercase placeholder:normal-case"
               />
             </div>
           </div>
@@ -290,7 +301,7 @@ export default function SolicitantePage() {
                 type="button"
                 onClick={() => inputFotoRef.current?.click()}
                 disabled={processandoFoto}
-                className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-panel-border bg-surface-2 px-3 py-4 text-sm text-dim transition hover:border-accent/50 hover:text-ink disabled:opacity-50"
+                className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-panel-border bg-surface-2 px-3 py-4 text-sm text-dim transition-colors hover:border-accent/50 hover:text-ink disabled:opacity-50"
               >
                 {processandoFoto ? "Processando..." : "📷 Tirar foto"}
               </button>
@@ -298,7 +309,7 @@ export default function SolicitantePage() {
 
             {foto && (
               <div className="relative w-fit">
-                <img src={foto} alt="Prévia da foto" className="h-32 w-32 rounded-lg border border-panel-border object-cover" />
+                <img src={foto} alt="Prévia da foto" className="h-32 w-32 rounded-xl border border-panel-border object-cover" />
                 <button
                   type="button"
                   onClick={removerFoto}
@@ -322,13 +333,9 @@ export default function SolicitantePage() {
 
           {erro && <p className="mb-3 text-sm text-critical">{erro}</p>}
 
-          <button
-            type="submit"
-            disabled={enviando || processandoFoto}
-            className="w-full rounded-lg bg-accent px-4 py-2.5 font-display text-sm font-semibold text-white transition hover:brightness-110 disabled:opacity-50"
-          >
+          <Button type="submit" disabled={enviando || processandoFoto} className="w-full">
             {enviando ? "Abrindo..." : "Abrir urgência"}
-          </button>
+          </Button>
         </form>
 
         <section className="mb-8">
@@ -338,15 +345,15 @@ export default function SolicitantePage() {
           {ativas.length === 0 && <p className="text-sm text-dim">Nenhuma solicitação em andamento.</p>}
           <div className="space-y-2">
             {ativas.map((s) => (
-              <div
+              <Card
                 key={s.id}
-                className="premium-card rounded-2xl border border-panel-border bg-panel px-4 py-3"
+                className="px-4 py-3"
                 style={{ borderLeftWidth: 3, borderLeftColor: URGENCIA_COR[s.urgencia] }}
               >
                 <div className="mb-2 flex items-center justify-between gap-3">
                   <div className="flex items-center gap-3">
                     {s.temFoto && (
-                      <button type="button" onClick={() => abrirFoto(s.id)} className="flex h-6 w-6 shrink-0 items-center justify-center rounded bg-surface-2 text-xs transition hover:bg-accent/10" title="Ver foto">📷</button>
+                      <button type="button" onClick={() => abrirFoto(s.id)} className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-surface-2 text-xs transition-colors hover:bg-accent/10" title="Ver foto">📷</button>
                     )}
                     <div>
                       <div className="text-sm text-ink">{s.descricaoItem}</div>
@@ -370,12 +377,14 @@ export default function SolicitantePage() {
                       <ElapsedTime since={s.criadaEm} alertAfterMinutes={5} className="font-mono text-[11px] text-dim" />
                     )}
                     {s.status === "EM_CURSO" && (
-                                          <button
+                      <Button
+                        variant="outline-progress"
+                        size="sm"
+                        className="relative"
                         onClick={() => {
                           limparNotificacoes(s.id);
                           setChatAberto(s.id);
                         }}
-                        className="relative rounded border border-progress/40 px-2 py-1 font-mono text-[11px] font-semibold text-progress hover:bg-progress/10"
                       >
                         💬 Chat
                         {mensagensNaoLidas[s.id] > 0 && (
@@ -383,23 +392,23 @@ export default function SolicitantePage() {
                             {mensagensNaoLidas[s.id]}
                           </span>
                         )}
-                      </button>
-
+                      </Button>
                     )}
                     <StatusBadge status={s.status} />
                   </div>
                 </div>
                 <div className="flex items-center justify-between gap-3 border-t border-panel-border pt-2">
-                  <select
+                  <Select
+                    size="sm"
                     value={s.urgencia}
                     onChange={(e) => alterarUrgencia(s.id, e.target.value)}
-                    className="rounded-lg border border-panel-border bg-surface-2 px-2 py-1 font-mono text-[11px] text-ink"
+                    className="font-mono"
                     title="Alterar urgência"
                   >
                     {Object.entries(URGENCIA_LABELS).map(([k, v]) => (
                       <option key={k} value={k}>{v}</option>
                     ))}
-                  </select>
+                  </Select>
                   <button
                     onClick={() => remover(s.id)}
                     className="font-mono text-[11px] text-critical underline decoration-dotted hover:text-critical/80"
@@ -407,7 +416,7 @@ export default function SolicitantePage() {
                     remover
                   </button>
                 </div>
-              </div>
+              </Card>
             ))}
           </div>
         </section>
@@ -424,10 +433,10 @@ export default function SolicitantePage() {
             <>
               <div className="space-y-2">
                 {concluidasVisiveis.map((s) => (
-                  <div key={s.id} className="flex items-center justify-between gap-3 rounded-2xl border border-panel-border bg-panel px-4 py-3 opacity-70">
+                  <Card key={s.id} className="flex items-center justify-between gap-3 px-4 py-3 opacity-70">
                     <div className="flex items-center gap-3">
                       {s.temFoto && (
-                        <button type="button" onClick={() => abrirFoto(s.id)} className="flex h-6 w-6 shrink-0 items-center justify-center rounded bg-surface-2 text-xs transition hover:bg-accent/10" title="Ver foto">📷</button>
+                        <button type="button" onClick={() => abrirFoto(s.id)} className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-surface-2 text-xs transition-colors hover:bg-accent/10" title="Ver foto">📷</button>
                       )}
                       <div>
                         <div className="text-sm text-ink">{s.descricaoItem}</div>
@@ -443,7 +452,7 @@ export default function SolicitantePage() {
                       </div>
                     </div>
                     <StatusBadge status={s.status} />
-                  </div>
+                  </Card>
                 ))}
               </div>
               {concluidas.length > HISTORICO_LIMITE && (
@@ -477,7 +486,7 @@ export default function SolicitantePage() {
       )}
       <ImageLightbox src={fotoAmpliada} onClose={fecharFoto} />
       {carregandoFoto && (
-        <div className="fixed bottom-4 left-4 z-50 rounded border border-panel-border bg-panel px-3 py-2 font-mono text-xs text-dim">
+        <div className="fixed bottom-4 left-4 z-50 rounded-xl border border-panel-border bg-panel px-3 py-2 font-mono text-xs text-dim">
           Carregando foto...
         </div>
       )}
