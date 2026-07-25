@@ -77,10 +77,10 @@ export default function EntregadorPage() {
     return () => clearInterval(interval);
   }, [nome, carregar]);
   useEffect(() => {
-  if (Notification.permission === "default") {
-    Notification.requestPermission();
-  }
-}, []);
+    if (Notification.permission === "default") {
+      Notification.requestPermission();
+    }
+  }, []);
 
   async function assumir(id: string) {
     if (!nome) return;
@@ -209,7 +209,7 @@ export default function EntregadorPage() {
                       </div>
                     </div>
                     <div className="flex shrink-0 gap-2">
-                                            <button
+                      <button
                         onClick={() => {
                           limparNotificacoes(s.id);
                           setChatAberto(s.id);
@@ -230,8 +230,6 @@ export default function EntregadorPage() {
                         Confirmar entrega
                       </button>
                     </div>
-              
-                  
                   </div>
                 ))}
             </div>
@@ -304,6 +302,18 @@ export default function EntregadorPage() {
                         <span>· {TIPO_LABELS[s.tipo]}</span>
                         <span>·</span>
                         <ElapsedTime since={s.criadaEm} alertAfterMinutes={5} />
+                        {s.enderecoEstoque && (
+                          <>
+                            <span>·</span>
+                            <EnderecoEstoque
+                              solicitacaoId={s.id}
+                              endereco={s.enderecoEstoque}
+                              alteradoPor={s.enderecoAlteradoPor}
+                              onAtualizado={() => {}}
+                              somenteLeitura
+                            />
+                          </>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -315,9 +325,9 @@ export default function EntregadorPage() {
       </div>
 
       <ImageLightbox
-  src={fotoAmpliada}
-  onClose={fecharFoto}
-/>
+        src={fotoAmpliada}
+        onClose={fecharFoto}
+      />
       {chatAberto && (
         <ChatPanel
           solicitacaoId={chatAberto}

@@ -67,10 +67,19 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ erro: "Campos obrigatórios faltando" }, { status: 400 });
   }
 
+  const descricaoNormalizada = String(descricaoItem).trim().toUpperCase();
+
+  // Se esse item já tem endereço cadastrado no estoque (de uma entrega
+  // anterior), a nova solicitação já nasce com o endereço preenchido —
+  // o entregador não precisa cadastrar de novo.
+  const itemConhecido = await prisma.itemEstoque.findFirst({
+    where: { nomeItem: { equals: descricaoNormalizada, mode: "insensitive" } },
+  });
+
   const solicitacao = await prisma.solicitacao.create({
     data: {
       tipo,
-      descricaoItem: String(descricaoItem).trim().toUpperCase(),
+      descricaoItem: descricaoNormalizada,
       localDestino: String(localDestino).trim().toUpperCase(),
       rackOuSlide: rackOuSlide ? String(rackOuSlide).trim().toUpperCase() : null,
       foto: foto ? String(foto) : null,
@@ -78,6 +87,8 @@ export async function POST(request: NextRequest) {
       urgencia,
       solicitanteNome: String(solicitanteNome).trim(),
       status: "PENDENTE",
+      enderecoEstoque: itemConhecido?.endereco ?? null,
+      enderecoAlteradoPor: itemConhecido?.endereco ? itemConhecido.ultimoAlteradoPor : null,
     },
     select: CAMPOS_LISTAGEM,
   });

@@ -28,12 +28,12 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     if (mudou) {
       item = await prisma.itemEstoque.update({
         where: { id: item.id },
-        data: { endereco: enderecoEstoque },
+        data: { endereco: enderecoEstoque, ultimoAlteradoPor: alteradoPor },
       });
     }
   } else {
     item = await prisma.itemEstoque.create({
-      data: { nomeItem: solicitacao.descricaoItem, endereco: enderecoEstoque },
+      data: { nomeItem: solicitacao.descricaoItem, endereco: enderecoEstoque, ultimoAlteradoPor: alteradoPor },
     });
   }
 

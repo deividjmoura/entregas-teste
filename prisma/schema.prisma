@@ -34,20 +34,19 @@ model Solicitacao {
 }
 
 model ItemEstoque {
-  id            String   @id @default(uuid())
-  nomeItem      String   @unique
-  endereco      String?
-  foto          String?  @db.Text
-  criadoEm      DateTime @default(now())
-  atualizadoEm  DateTime @updatedAt
+  id                String   @id @default(uuid())
+  nomeItem          String   @unique
+  endereco          String?
+  ultimoAlteradoPor String?
+  foto              String?  @db.Text
+  criadoEm          DateTime @default(now())
+  atualizadoEm      DateTime @updatedAt
 
   historicoEndereco HistoricoEnderecoEstoque[]
 
   @@index([nomeItem])
 }
 
-// Guarda só quem mudou o endereço e quando — não versiona a foto,
-// só o endereço, que é o campo que o entregador pode alterar.
 model HistoricoEnderecoEstoque {
   id             String      @id @default(uuid())
   itemId         String
@@ -59,6 +58,7 @@ model HistoricoEnderecoEstoque {
 
   @@index([itemId, alteradoEm])
 }
+
 model Mensagem {
   id            String      @id @default(uuid())
   solicitacaoId String
