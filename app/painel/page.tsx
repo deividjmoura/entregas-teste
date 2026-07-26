@@ -347,7 +347,7 @@ export default function PainelPage() {
                 {entreguesRecentes.length > 0 && (
                   <div className="space-y-2">
                     {entreguesRecentes.map((s) => (
-                      <Card key={s.id} className="px-4 py-3">
+                      <Card key={s.id} tilt={false} className="px-4 py-3">
                         <div className="mb-1 flex items-center justify-between gap-3">
                           <div className="flex items-center gap-3">
                             {s.temFoto && (
@@ -405,7 +405,7 @@ export default function PainelPage() {
                 {entregasPorRota.length > 0 && (
                   <div className="space-y-2">
                     {entregasPorRota.map(([rota, contagem]) => (
-                      <Card key={rota} className="flex items-center justify-between px-4 py-3">
+                      <Card key={rota} tilt={false} className="flex items-center justify-between px-4 py-3">
                         <div className="flex items-center gap-2">
                           <span
                             className="h-2 w-2 rounded-full"
@@ -441,7 +441,7 @@ export default function PainelPage() {
             {resultadosBusca !== null && resultadosBusca.length > 0 && (
               <div className="space-y-2">
                 {resultadosBusca.map((s) => (
-                  <Card key={s.id} className="px-4 py-3">
+                  <Card key={s.id} tilt={false} className="px-4 py-3">
                     <div className="mb-1 flex items-center justify-between gap-3">
                       <div className="flex items-center gap-3">
                         {s.temFoto && (
