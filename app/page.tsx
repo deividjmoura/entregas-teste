@@ -42,17 +42,17 @@ export default function Home() {
             className="font-display text-4xl font-semibold leading-tight text-ink"
             texts={[
               "Nenhum item entregue duas vezes.",
-              "ship it. sem atraso, sem retrabalho.",
-              "a fila certa, na hora certa.",
+              "Ship it. sem atraso, sem retrabalho.",
+              "A fila certa, na hora certa.",
             ]}
           />
           <p className="mt-1 font-mono text-[11px] uppercase tracking-[0.15em] text-dim">
-            passe o mouse ou toque para embaralhar
+            <br></br>add
           </p>
           <p className="mt-3 text-sm text-dim">
             Entre com sua conta Google e escolha como vai usar o sistema
           </p>
-
+            <br></br>
           {erro && <p className="mb-4 text-center text-sm text-critical">{erro}</p>}
 
           <div className="grid grid-cols-2 gap-3">
