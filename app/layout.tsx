@@ -26,8 +26,24 @@ const mono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://entregas-teste.vercel.app"),
   title: "Despacho — Entregas Internas",
   description: "Central de coordenação de entregas internas",
+  openGraph: {
+    title: "Despacho — Entregas Internas",
+    description:
+      "Substitui rádio e WhatsApp por uma fila única com atribuição travada em tempo real.",
+    url: "https://entregas-teste.vercel.app",
+    siteName: "Entregas Internas",
+    locale: "pt_BR",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Despacho — Entregas Internas",
+    description:
+      "Substitui rádio e WhatsApp por uma fila única com atribuição travada em tempo real.",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
