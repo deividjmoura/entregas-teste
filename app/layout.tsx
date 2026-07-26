@@ -27,22 +27,55 @@ const mono = IBM_Plex_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://entregas-teste.vercel.app"),
-  title: "Despacho — Entregas Internas",
-  description: "Central de coordenação de entregas internas",
+
+  title: "Entregas Internas | Sistema de Gestão de Entregas",
+
+  description:
+    "Sistema para gerenciamento de entregas internas com fila inteligente, prioridades, chat e histórico em tempo real.",
+
+  keywords: [
+    "entregas",
+    "gestão",
+    "nextjs",
+    "prisma",
+    "firebase",
+    "controle de entregas",
+  ],
+
   openGraph: {
-    title: "Despacho — Entregas Internas",
+    title: "Entregas Internas | Sistema de Gestão de Entregas",
+
     description:
-      "Substitui rádio e WhatsApp por uma fila única com atribuição travada em tempo real.",
+      "Fila inteligente, prioridades, chat e histórico em tempo real.",
+
     url: "https://entregas-teste.vercel.app",
+
     siteName: "Entregas Internas",
+
     locale: "pt_BR",
+
     type: "website",
+
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Entregas Internas",
+      },
+    ],
   },
+
   twitter: {
     card: "summary_large_image",
-    title: "Despacho — Entregas Internas",
+    title: "Entregas Internas | Sistema de Gestão de Entregas",
     description:
-      "Substitui rádio e WhatsApp por uma fila única com atribuição travada em tempo real.",
+      "Fila inteligente, prioridades, chat e histórico em tempo real.",
+    images: ["/og-image.png"],
+  },
+
+  icons: {
+    icon: "/favicon.ico",
   },
 };
 
