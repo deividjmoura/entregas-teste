@@ -2,6 +2,7 @@
 
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { ScrambleText } from "@/components/scramble-text";
 
 function FormularioAcesso() {
   const router = useRouter();
@@ -55,7 +56,16 @@ function FormularioAcesso() {
 
 export default function AcessoPage() {
   return (
-    <main className="flex min-h-screen items-center justify-center px-6">
+    <main className="flex min-h-screen flex-col items-center justify-center gap-10 px-6">
+      <ScrambleText
+        as="h1"
+        className="text-center font-display text-4xl font-semibold leading-tight text-ink sm:text-5xl lg:text-6xl"
+        texts={[
+          "Nenhum item entregue duas vezes.",
+          "Ship it. sem atraso, sem retrabalho.",
+          "A fila certa, na hora certa.",
+        ]}
+      />
       <Suspense fallback={null}>
         <FormularioAcesso />
       </Suspense>
