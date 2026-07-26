@@ -47,7 +47,7 @@ export default function Home() {
             ]}
           />
           <p className="mt-1 font-mono text-[11px] uppercase tracking-[0.15em] text-dim">
-            <br></br>add
+            <br></br>
           </p>
           <p className="mt-3 text-sm text-dim">
             Entre com sua conta Google e escolha como vai usar o sistema

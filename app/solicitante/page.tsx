@@ -19,6 +19,9 @@ import { useNotificacoes } from "@/lib/use-notificacoes-chat";
 import { Button } from "@/components/ui/button";
 import { Input, Select } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
+import { RudderBar } from "@/components/rudder-bar";
+import { BottomSheet } from "@/components/bottom-sheet";
+import { ChatsListModal } from "@/components/chats-list-modal";
 
 const HISTORICO_LIMITE = 5;
 const CHAVE_JA_PERGUNTOU = "entregas:linhaPerguntada";
@@ -32,6 +35,8 @@ export default function SolicitantePage() {
   const [erro, setErro] = useState<string | null>(null);
   const [mostrarHistorico, setMostrarHistorico] = useState(false);
   const [chatAberto, setChatAberto] = useState<string | null>(null);
+  const [mostrarFormulario, setMostrarFormulario] = useState(false);
+  const [mostrarChats, setMostrarChats] = useState(false);
 
   const { linha: linhaPredefinida, carregado: linhaCarregada, setLinha: definirLinhaPredefinida } =
     useLinhaPredefinida();
@@ -146,6 +151,7 @@ export default function SolicitantePage() {
       setUrgencia("MEDIA");
       removerFoto();
       await carregar(nome);
+      setMostrarFormulario(false);
     } finally {
       setEnviando(false);
     }
@@ -219,124 +225,7 @@ export default function SolicitantePage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-2xl px-6 py-6 pb-16">
-        
-        <form onSubmit={abrirSolicitacao} className="mb-8 rounded-2xl border border-panel-border bg-panel p-5 shadow-premium-sm">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="font-display text-base font-semibold text-ink">Abrir urgência</h2>
-            <button
-              type="button"
-              onClick={() => setMostrarModalLinha(true)}
-              className="font-mono text-[11px] text-dim underline decoration-dotted hover:text-ink"
-            >
-              {linhaPredefinida ? `linha padrão: ${linhaPredefinida} (trocar)` : "definir linha padrão"}
-            </button>
-          </div>
-
-          <div className="mb-4 grid grid-cols-2 gap-3">
-            <div>
-              <label className="mb-1 block font-mono text-[11px] uppercase text-dim">Tipo</label>
-              <Select value={tipo} onChange={(e) => setTipo(e.target.value)}>
-                {Object.entries(TIPO_LABELS).map(([k, v]) => (
-                  <option key={k} value={k}>{v}</option>
-                ))}
-              </Select>
-            </div>
-            <div>
-              <label className="mb-1 block font-mono text-[11px] uppercase text-dim">Urgência</label>
-              <Select value={urgencia} onChange={(e) => setUrgencia(e.target.value)}>
-                {Object.entries(URGENCIA_LABELS).map(([k, v]) => (
-                  <option key={k} value={k}>{v}</option>
-                ))}
-              </Select>
-            </div>
-          </div>
-
-          <div className="mb-4">
-            <label className="mb-1 block font-mono text-[11px] uppercase text-dim">
-              Item <span className="text-critical">*</span>
-            </label>
-            <Input
-              value={descricaoItem}
-              onChange={(e) => setDescricaoItem(e.target.value)}
-              placeholder="ex: resistor 10k"
-              required
-              className="uppercase placeholder:normal-case"
-            />
-          </div>
-
-          <div className="mb-4 grid grid-cols-2 gap-3">
-            <div>
-              <label className="mb-1 block font-mono text-[11px] uppercase text-dim">
-                Local de destino <span className="text-critical">*</span>
-              </label>
-              <Input
-                value={localDestino}
-                onChange={(e) => setLocalDestino(e.target.value)}
-                placeholder="ex: Linha de montagem 3"
-                required
-                className="uppercase placeholder:normal-case"
-              />
-            </div>
-            <div>
-              <label className="mb-1 block font-mono text-[11px] uppercase text-dim">
-                Rack / Slide <span className="text-dim">(opcional)</span>
-              </label>
-              <Input
-                value={rackOuSlide}
-                onChange={(e) => setRackOuSlide(e.target.value)}
-                placeholder="ex: Rack A3 / Slide 12"
-                className="uppercase placeholder:normal-case"
-              />
-            </div>
-          </div>
-
-          <div className="mb-5">
-            <label className="mb-1 block font-mono text-[11px] uppercase text-dim">
-              Foto <span className="text-dim">(opcional)</span>
-            </label>
-
-            {!foto && (
-              <button
-                type="button"
-                onClick={() => inputFotoRef.current?.click()}
-                disabled={processandoFoto}
-                className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-panel-border bg-surface-2 px-3 py-4 text-sm text-dim transition-colors hover:border-accent/50 hover:text-ink disabled:opacity-50"
-              >
-                {processandoFoto ? "Processando..." : "📷 Tirar foto"}
-              </button>
-            )}
-
-            {foto && (
-              <div className="relative w-fit">
-                <img src={foto} alt="Prévia da foto" className="h-32 w-32 rounded-xl border border-panel-border object-cover" />
-                <button
-                  type="button"
-                  onClick={removerFoto}
-                  className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-critical text-xs font-bold text-white"
-                  title="Remover foto"
-                >
-                  ×
-                </button>
-              </div>
-            )}
-
-            <input
-              ref={inputFotoRef}
-              type="file"
-              accept="image/*"
-              capture="environment"
-              onChange={handleFotoChange}
-              className="hidden"
-            />
-          </div>
-
-          {erro && <p className="mb-3 text-sm text-critical">{erro}</p>}
-
-          <Button type="submit" disabled={enviando || processandoFoto} className="w-full">
-            {enviando ? "Abrindo..." : "Abrir urgência"}
-          </Button>
-        </form>
+      <main className="mx-auto max-w-2xl px-6 py-6 pb-32">
 
         <section className="mb-8">
           <h2 className="mb-3 font-display text-base font-semibold text-ink">
@@ -490,6 +379,146 @@ export default function SolicitantePage() {
           Carregando foto...
         </div>
       )}
+
+      {mostrarFormulario && (
+        <BottomSheet titulo="Abrir urgência" onClose={() => setMostrarFormulario(false)}>
+          <form onSubmit={abrirSolicitacao}>
+            <div className="mb-4 flex items-center justify-between">
+              <span className="font-mono text-[11px] text-dim">preencha os dados da solicitação</span>
+              <button
+                type="button"
+                onClick={() => setMostrarModalLinha(true)}
+                className="font-mono text-[11px] text-dim underline decoration-dotted hover:text-ink"
+              >
+                {linhaPredefinida ? `linha padrão: ${linhaPredefinida} (trocar)` : "definir linha padrão"}
+              </button>
+            </div>
+
+            <div className="mb-4 grid grid-cols-2 gap-3">
+              <div>
+                <label className="mb-1 block font-mono text-[11px] uppercase text-dim">Tipo</label>
+                <Select value={tipo} onChange={(e) => setTipo(e.target.value)}>
+                  {Object.entries(TIPO_LABELS).map(([k, v]) => (
+                    <option key={k} value={k}>{v}</option>
+                  ))}
+                </Select>
+              </div>
+              <div>
+                <label className="mb-1 block font-mono text-[11px] uppercase text-dim">Urgência</label>
+                <Select value={urgencia} onChange={(e) => setUrgencia(e.target.value)}>
+                  {Object.entries(URGENCIA_LABELS).map(([k, v]) => (
+                    <option key={k} value={k}>{v}</option>
+                  ))}
+                </Select>
+              </div>
+            </div>
+
+            <div className="mb-4">
+              <label className="mb-1 block font-mono text-[11px] uppercase text-dim">
+                Item <span className="text-critical">*</span>
+              </label>
+              <Input
+                value={descricaoItem}
+                onChange={(e) => setDescricaoItem(e.target.value)}
+                placeholder="ex: resistor 10k"
+                required
+                className="uppercase placeholder:normal-case"
+              />
+            </div>
+
+            <div className="mb-4 grid grid-cols-2 gap-3">
+              <div>
+                <label className="mb-1 block font-mono text-[11px] uppercase text-dim">
+                  Local de destino <span className="text-critical">*</span>
+                </label>
+                <Input
+                  value={localDestino}
+                  onChange={(e) => setLocalDestino(e.target.value)}
+                  placeholder="ex: Linha de montagem 3"
+                  required
+                  className="uppercase placeholder:normal-case"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block font-mono text-[11px] uppercase text-dim">
+                  Rack / Slide <span className="text-dim">(opcional)</span>
+                </label>
+                <Input
+                  value={rackOuSlide}
+                  onChange={(e) => setRackOuSlide(e.target.value)}
+                  placeholder="ex: Rack A3 / Slide 12"
+                  className="uppercase placeholder:normal-case"
+                />
+              </div>
+            </div>
+
+            <div className="mb-5">
+              <label className="mb-1 block font-mono text-[11px] uppercase text-dim">
+                Foto <span className="text-dim">(opcional)</span>
+              </label>
+
+              {!foto && (
+                <button
+                  type="button"
+                  onClick={() => inputFotoRef.current?.click()}
+                  disabled={processandoFoto}
+                  className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-panel-border bg-surface-2 px-3 py-4 text-sm text-dim transition-colors hover:border-accent/50 hover:text-ink disabled:opacity-50"
+                >
+                  {processandoFoto ? "Processando..." : "📷 Tirar foto"}
+                </button>
+              )}
+
+              {foto && (
+                <div className="relative w-fit">
+                  <img src={foto} alt="Prévia da foto" className="h-32 w-32 rounded-xl border border-panel-border object-cover" />
+                  <button
+                    type="button"
+                    onClick={removerFoto}
+                    className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-critical text-xs font-bold text-white"
+                    title="Remover foto"
+                  >
+                    ×
+                  </button>
+                </div>
+              )}
+
+              <input
+                ref={inputFotoRef}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                onChange={handleFotoChange}
+                className="hidden"
+              />
+            </div>
+
+            {erro && <p className="mb-3 text-sm text-critical">{erro}</p>}
+
+            <Button type="submit" disabled={enviando || processandoFoto} className="w-full">
+              {enviando ? "Abrindo..." : "Abrir urgência"}
+            </Button>
+          </form>
+        </BottomSheet>
+      )}
+
+      {mostrarChats && (
+        <ChatsListModal
+          solicitacoes={minhas}
+          mensagensNaoLidas={mensagensNaoLidas}
+          onAbrirChat={(id) => {
+            limparNotificacoes(id);
+            setChatAberto(id);
+            setMostrarChats(false);
+          }}
+          onClose={() => setMostrarChats(false)}
+        />
+      )}
+
+      <RudderBar
+        onAbrirFormulario={() => setMostrarFormulario(true)}
+        onAbrirChats={() => setMostrarChats(true)}
+        totalNaoLidas={Object.values(mensagensNaoLidas).reduce((a, b) => a + b, 0)}
+      />
     </div>
   );
 }
