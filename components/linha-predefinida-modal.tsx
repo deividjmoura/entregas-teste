@@ -12,7 +12,7 @@ export function LinhaPredefinidaModal({ onDefinir, onPular, valorInicial = "" }:
   const [valor, setValor] = useState(valorInicial);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-6">
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70 p-6">
       <div className="w-full max-w-sm rounded-lg border border-panel-border bg-panel p-5">
         <h2 className="mb-1 font-display text-sm font-semibold text-ink">Hoje vai solicitar pra qual linha?</h2>
         <p className="mb-4 text-xs text-dim">
