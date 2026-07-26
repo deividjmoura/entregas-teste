@@ -99,12 +99,6 @@ body {
   box-shadow: 0 16px 32px -12px rgba(0, 0, 0, 0.5);
 }
 /* ─── Tema Aurora / Glass Tilt / Scramble ─── */
-@property --card-angle {
-  syntax: "<angle>";
-  initial-value: 0deg;
-  inherits: false;
-}
-
 .aurora-scene {
   position: fixed;
   inset: 0;
@@ -167,16 +161,18 @@ body {
   backdrop-filter: blur(20px) saturate(1.4);
   -webkit-backdrop-filter: blur(20px) saturate(1.4);
   overflow: hidden;
-  transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1), box-shadow 0.4s;
+  transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1),
+    box-shadow 0.4s ease, border-color 0.4s ease;
   transform-style: preserve-3d;
   will-change: transform;
 }
 
+/* shimmer que varre a superfície no hover — só o movimento, sem cor extra */
 .glass-tilt-card::before {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.07) 50%, transparent 60%);
+  background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.08) 50%, transparent 60%);
   background-size: 200% 100%;
   background-position: -100% 0;
   transition: background-position 0.6s ease;
@@ -187,23 +183,13 @@ body {
   background-position: 200% 0;
 }
 
-.glass-tilt-card::after {
-  content: "";
-  position: absolute;
-  inset: -1px;
-  border-radius: 21px;
-  background: conic-gradient(from var(--card-angle, 0deg), #5ee7df, #b490f5, #5eadff, #5ee7df);
-  z-index: -1;
-  opacity: 0;
-  transition: opacity 0.4s;
-  animation: card-border-spin 4s linear infinite;
-}
-.glass-tilt-card:hover::after {
-  opacity: 1;
-}
-
-@keyframes card-border-spin {
-  to { --card-angle: 360deg; }
+/* glow neon de UMA cor só (accent do tema), sem conic-gradient */
+.glass-tilt-card:hover {
+  border-color: rgba(var(--color-accent), 0.55);
+  box-shadow:
+    0 0 28px -6px rgba(var(--color-accent), 0.5),
+    0 0 60px -18px rgba(var(--color-accent), 0.35),
+    0 18px 40px -20px rgba(0, 0, 0, 0.6);
 }
 
 .scramble-text {
