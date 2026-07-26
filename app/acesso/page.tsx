@@ -2,7 +2,7 @@
 
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ScrambleText } from "@/components/scramble-text";
+import { DeliveryHero } from "@/components/delivery/DeliveryHero";
 
 function FormularioAcesso() {
   const router = useRouter();
@@ -56,19 +56,44 @@ function FormularioAcesso() {
 
 export default function AcessoPage() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-10 px-6">
-      <ScrambleText
-        as="h1"
-        className="text-center font-display text-4xl font-semibold leading-tight text-ink sm:text-5xl lg:text-6xl"
-        texts={[
-          "Nenhum item entregue duas vezes.",
-          "Ship it. sem atraso, sem retrabalho.",
-          "A fila certa, na hora certa.",
-        ]}
-      />
-      <Suspense fallback={null}>
-        <FormularioAcesso />
-      </Suspense>
+    <main className="flex min-h-screen items-center justify-center px-6">
+      {/* Hero e formulário compartilham a mesma largura máxima e o mesmo
+          eixo central, evitando o hero ficar "full-bleed" enquanto o
+          card do formulário fica estreito e centralizado sozinho. */}
+      <div className="flex w-full max-w-xl flex-col items-center gap-10">
+        <DeliveryHero
+          className="text-center font-display text-4xl font-semibold leading-tight text-ink sm:text-5xl lg:text-6xl"
+          texts={[
+             "Ship it. sem atraso, sem retrabalho.",
+              "Nenhum item entregue duas vezes.",
+              "A fila certa, na hora certa.",
+              "Uma fila. Zero confusão.",
+              "Menos rádio. Mais resultado.",
+              "Do caos à organização.",
+              "Solicitou. Acompanhou. Entregou.",
+              "Tudo registrado. Nada perdido.",
+              "Prioridade para o que importa.",
+              "Cada segundo conta.",
+              "Sua equipe, uma única fila.",
+              "Organização em tempo real.",
+              "Mais controle. Menos espera.",
+              "Fluxo inteligente para entregas.",
+              "Entregar ficou mais simples.",
+              "Sem ruído. Só produtividade.",
+              "Sua logística em outro nível.",
+              "Acompanhe tudo em tempo real.",
+              "Cada solicitação tem um destino.",
+              "Eficiência do início ao fim.",
+              "Entregas inteligentes começam aqui.",
+              "Transformando pedidos em resultados.",
+              "Controle completo das solicitações.",
+              "Mais agilidade para sua equipe.",
+          ]}
+        />
+        <Suspense fallback={null}>
+          <FormularioAcesso />
+        </Suspense>
+      </div>
     </main>
   );
 }

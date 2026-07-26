@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { signInWithPopup } from "firebase/auth";
 import { auth, googleProvider } from "@/lib/firebase";
 import { useAuth } from "@/lib/auth-context";
-import { ScrambleText } from "@/components/scramble-text";
+import { DeliveryHero } from "@/components/delivery/DeliveryHero";
 import { Card } from "@/components/ui/card";
 
 export default function Home() {
@@ -37,13 +37,33 @@ export default function Home() {
             <span className="inline-block h-1.5 w-1.5 animate-pulse-led rounded-full bg-urgent" />
             central de despacho
           </div>
-          <ScrambleText
-            as="h1"
+          <DeliveryHero
             className="font-display text-4xl font-semibold leading-tight text-ink"
             texts={[
-              "Nenhum item entregue duas vezes.",
-              "Ship it. sem atraso, sem retrabalho.",
-              "A fila certa, na hora certa.",
+               "Ship it. sem atraso, sem retrabalho.",
+                "Nenhum item entregue duas vezes.",
+                "A fila certa, na hora certa.",
+                "Uma fila. Zero confusão.",
+                "Menos rádio. Mais resultado.",
+                "Do caos à organização.",
+                "Solicitou. Acompanhou. Entregou.",
+                "Tudo registrado. Nada perdido.",
+                "Prioridade para o que importa.",
+                "Cada segundo conta.",
+                "Sua equipe, uma única fila.",
+                "Organização em tempo real.",
+                "Mais controle. Menos espera.",
+                "Fluxo inteligente para entregas.",
+                "Entregar ficou mais simples.",
+                "Sem ruído. Só produtividade.",
+                "Sua logística em outro nível.",
+                "Acompanhe tudo em tempo real.",
+                "Cada solicitação tem um destino.",
+                "Eficiência do início ao fim.",
+                "Entregas inteligentes começam aqui.",
+                "Transformando pedidos em resultados.",
+                "Controle completo das solicitações.",
+                "Mais agilidade para sua equipe.",
             ]}
           />
           <p className="mt-1 font-mono text-[11px] uppercase tracking-[0.15em] text-dim">

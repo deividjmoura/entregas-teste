@@ -1,0 +1,170 @@
+.arm-left,
+.arm-right,
+.leg-left,
+.leg-right,
+.box {
+    transform-box: fill-box;
+    transform-origin: center;
+}
+
+/* braços */
+
+.arm-left {
+    animation: armLeft .45s ease-in-out infinite alternate;
+}
+
+.arm-right {
+    animation: armRight .45s ease-in-out infinite alternate;
+}
+
+/* pernas */
+
+.leg-left {
+    animation: legLeft .45s ease-in-out infinite alternate;
+}
+
+.leg-right {
+    animation: legRight .45s ease-in-out infinite alternate;
+}
+
+/* caixa */
+
+.box {
+    animation: boxFloat .35s ease-in-out infinite alternate;
+}
+
+/* ========= */
+
+@keyframes armLeft {
+    from {
+        transform: rotate(10deg);
+    }
+
+    to {
+        transform: rotate(-10deg);
+    }
+}
+
+@keyframes armRight {
+    from {
+        transform: rotate(-10deg);
+    }
+
+    to {
+        transform: rotate(10deg);
+    }
+}
+
+@keyframes legLeft {
+    from {
+        transform: rotate(-12deg);
+    }
+
+    to {
+        transform: rotate(12deg);
+    }
+}
+
+@keyframes legRight {
+    from {
+        transform: rotate(12deg);
+    }
+
+    to {
+        transform: rotate(-12deg);
+    }
+}
+
+@keyframes boxFloat {
+    from {
+        transform: translateY(-1px);
+    }
+
+    to {
+        transform: translateY(2px);
+    }
+}
+
+/* Corpo inteiro */
+
+.worker-body{
+
+    transform-box: fill-box;
+
+    transform-origin:center;
+
+    animation:bodyWalk .45s ease-in-out infinite alternate;
+
+}
+
+/* Cabeça */
+
+.worker circle{
+
+    animation:headWalk .45s ease-in-out infinite alternate;
+
+}
+
+/* sombra */
+
+.worker ellipse{
+
+    animation:shadowWalk .45s ease-in-out infinite alternate;
+
+}
+
+@keyframes bodyWalk{
+
+    from{
+
+        transform:
+            translateY(0px)
+            rotate(-2deg);
+
+    }
+
+    to{
+
+        transform:
+            translateY(-3px)
+            rotate(2deg);
+
+    }
+
+}
+
+@keyframes headWalk{
+
+    from{
+
+        transform:translateY(.5px);
+
+    }
+
+    to{
+
+        transform:translateY(-1px);
+
+    }
+
+}
+
+@keyframes shadowWalk{
+
+    from{
+
+        transform:scale(.95);
+
+        opacity:.20;
+
+    }
+
+    to{
+
+        transform:scale(1.1);
+
+        opacity:.10;
+
+    }
+
+}

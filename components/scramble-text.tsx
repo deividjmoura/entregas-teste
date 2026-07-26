@@ -1,59 +1,125 @@
 "use client";
 
-import { useRef, useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
-const CHARS = "!<>-_\\/[]{}—=+*^?#░▒▓│┤╡╢╖╕╣║╗╝╜╛┐└┴┬├─┼╞╟╚╔╩╦╠═╬╧╨╤╥╙╘╒╓╫╪┘┌";
+const CHARS =
+  "!<>-_\\/[]{}—=+*^?#________";
 
 interface ScrambleTextProps {
   texts: string[];
   className?: string;
   as?: "span" | "h1" | "h2" | "p";
-  auto?: boolean;
 }
 
-export function ScrambleText({ texts, className = "", as = "span", auto = true }: ScrambleTextProps) {
-  const [display, setDisplay] = useState(texts[0] ?? "");
-  const idxRef = useRef(0);
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+export function ScrambleText({
+  texts,
+  className = "",
+  as = "span",
+}: ScrambleTextProps) {
+  const Tag = as;
 
-  function scramble(newText: string) {
-    if (timerRef.current) clearInterval(timerRef.current);
-    const len = Math.max(display.length, newText.length);
-    let iter = 0;
-    timerRef.current = setInterval(() => {
-      setDisplay(
-        newText
-          .split("")
-          .map((ch, i) => {
-            if (i < iter) return newText[i];
-            if (ch === " ") return " ";
-            return CHARS[Math.floor(Math.random() * CHARS.length)];
-          })
-          .join(""),
-      );
-      if (iter >= len + 4 && timerRef.current) clearInterval(timerRef.current);
-      iter += 0.6;
-    }, 38);
+  const [output, setOutput] = useState(texts[0]);
+
+  const current = useRef(0);
+
+  const frameRequest = useRef<number>();
+
+  const timeout = useRef<NodeJS.Timeout>();
+
+  const queue = useRef<
+    {
+      from: string;
+      to: string;
+      start: number;
+      end: number;
+      char?: string;
+    }[]
+  >([]);
+
+  function randomChar() {
+    return CHARS[Math.floor(Math.random() * CHARS.length)];
+  }
+
+  function setText(newText: string) {
+    cancelAnimationFrame(frameRequest.current!);
+
+    const oldText = output;
+    const length = Math.max(oldText.length, newText.length);
+
+    queue.current = [];
+
+    for (let i = 0; i < length; i++) {
+      queue.current.push({
+        from: oldText[i] || "",
+        to: newText[i] || "",
+        start: Math.floor(Math.random() * 20),
+        end: Math.floor(Math.random() * 20) + 20,
+      });
+    }
+
+    let frame = 0;
+
+    const update = () => {
+      let complete = 0;
+      let text = "";
+
+      for (let i = 0; i < queue.current.length; i++) {
+        const item = queue.current[i];
+
+        if (frame >= item.end) {
+          complete++;
+          text += item.to;
+        } else if (frame >= item.start) {
+          if (!item.char || Math.random() < 0.28) {
+            item.char = randomChar();
+          }
+          text += item.char;
+        } else {
+          text += item.from;
+        }
+      }
+
+      setOutput(text);
+
+      if (complete === queue.current.length) return;
+
+      frame++;
+      frameRequest.current = requestAnimationFrame(update);
+    };
+
+    update();
+  }
+
+  function nextText() {
+    current.current = (current.current + 1) % texts.length;
+    setText(texts[current.current]);
+    schedule();
+  }
+
+  function schedule() {
+    clearTimeout(timeout.current);
+
+    timeout.current = setTimeout(() => {
+      nextText();
+    }, 3500);
   }
 
   useEffect(() => {
-    if (auto) scramble(texts[0] ?? "");
+    schedule();
+
     return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
+      cancelAnimationFrame(frameRequest.current!);
+      clearTimeout(timeout.current);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  function proximaFrase() {
-    idxRef.current = (idxRef.current + 1) % texts.length;
-    scramble(texts[idxRef.current]);
-  }
-
-  const Tag = as;
-
   return (
-    <Tag className={`scramble-text ${className}`} onMouseEnter={proximaFrase} onClick={proximaFrase}>
-      {display}
+    <Tag
+      className={className}
+      onMouseEnter={nextText}
+      onClick={nextText}
+    >
+      {output}
     </Tag>
   );
 }
