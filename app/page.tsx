@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { signInWithPopup } from "firebase/auth";
 import { auth, googleProvider } from "@/lib/firebase";
 import { useAuth } from "@/lib/auth-context";
+import { ScrambleText } from "@/components/scramble-text";
+import { Card } from "@/components/ui/card";
 
 export default function Home() {
   const router = useRouter();
@@ -35,41 +37,47 @@ export default function Home() {
             <span className="inline-block h-1.5 w-1.5 animate-pulse-led rounded-full bg-urgent" />
             central de despacho
           </div>
-          <h1 className="font-display text-4xl font-semibold leading-tight text-ink">
-            Nenhum item entregue<br />duas vezes.
-          </h1>
-          <p className="mt-3 text-sm text-dim">
-            Substitui rádio e WhatsApp por uma fila única, com atribuição
-            travada por entregador em tempo real.
+          <ScrambleText
+            as="h1"
+            className="font-display text-4xl font-semibold leading-tight text-ink"
+            texts={[
+              "Nenhum item entregue duas vezes.",
+              "ship it. sem atraso, sem retrabalho.",
+              "a fila certa, na hora certa.",
+            ]}
+          />
+          <p className="mt-1 font-mono text-[11px] uppercase tracking-[0.15em] text-dim">
+            passe o mouse ou toque para embaralhar
           </p>
-        </div>
-
-        <div className="rounded-lg border border-panel-border bg-panel p-6">
-          <p className="mb-5 text-center text-sm text-dim">
+          <p className="mt-3 text-sm text-dim">
             Entre com sua conta Google e escolha como vai usar o sistema
           </p>
 
           {erro && <p className="mb-4 text-center text-sm text-critical">{erro}</p>}
 
           <div className="grid grid-cols-2 gap-3">
-            <button
-              onClick={() => entrarComGoogle("solicitante")}
-              disabled={entrando !== null}
-              className="flex flex-col items-center gap-2 rounded border border-panel-border bg-bg px-4 py-4 transition hover:border-progress disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              <GoogleIcon />
-              <div className="font-display text-sm font-semibold text-ink">Solicitante</div>
-              <div className="text-center text-xs text-dim">Abrir e acompanhar urgência</div>
-            </button>
-            <button
-              onClick={() => entrarComGoogle("entregador")}
-              disabled={entrando !== null}
-              className="flex flex-col items-center gap-2 rounded border border-panel-border bg-bg px-4 py-4 transition hover:border-urgent disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              <GoogleIcon />
-              <div className="font-display text-sm font-semibold text-ink">Entregador</div>
-              <div className="text-center text-xs text-dim">Ver fila e assumir entregas</div>
-            </button>
+            <Card className="p-1">
+              <button
+                onClick={() => entrarComGoogle("solicitante")}
+                disabled={entrando !== null}
+                className="flex w-full flex-col items-center gap-2 rounded-2xl px-4 py-4 transition disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <GoogleIcon />
+                <div className="font-display text-sm font-semibold text-ink">Solicitante</div>
+                <div className="text-center text-xs text-dim">Abrir e acompanhar urgência</div>
+              </button>
+            </Card>
+            <Card className="p-1">
+              <button
+                onClick={() => entrarComGoogle("entregador")}
+                disabled={entrando !== null}
+                className="flex w-full flex-col items-center gap-2 rounded-2xl px-4 py-4 transition disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <GoogleIcon />
+                <div className="font-display text-sm font-semibold text-ink">Entregador</div>
+                <div className="text-center text-xs text-dim">Ver fila e assumir entregas</div>
+              </button>
+            </Card>
           </div>
         </div>
         <button

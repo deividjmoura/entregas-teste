@@ -46,11 +46,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body className={`${display.variable} ${body.variable} ${mono.variable} font-body`}>
+        <div className="aurora-scene" aria-hidden="true">
+          <div className="aurora-blob aurora-blob--1" />
+          <div className="aurora-blob aurora-blob--2" />
+          <div className="aurora-blob aurora-blob--3" />
+        </div>
         <AuthProvider>
         <PresenceProvider>
         <NotificacoesProvider>
         <ModalNome />
-        {children}
+        <div className="relative z-[1]">{children}</div>
         <ThemeToggle />
         </NotificacoesProvider>
         </PresenceProvider>
