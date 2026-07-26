@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 import { corParaLocal } from "@/lib/domain";
+import { useTilt } from "@/lib/use-tilt";
 
 interface LocationCardProps {
   local: string;
@@ -13,6 +14,9 @@ interface LocationCardProps {
 export function LocationCard({ local, contagem, temLinhaParada, children }: LocationCardProps) {
   const [aberto, setAberto] = useState(true);
   const [pronto, setPronto] = useState(false);
+  // tilt mais discreto que o dos Cards normais — grid cheio de cards
+  // pede um movimento mais sutil
+  const { ref, onMouseMove, onMouseLeave, onMouseEnter } = useTilt<HTMLDivElement>(6);
 
   useEffect(() => {
     const desktop = window.matchMedia("(min-width: 768px)").matches;
@@ -26,10 +30,15 @@ export function LocationCard({ local, contagem, temLinhaParada, children }: Loca
 
   return (
     <div
-      className={`group relative flex flex-col overflow-hidden rounded-[20px] border backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 ${
+      ref={ref}
+      onMouseMove={onMouseMove}
+      onMouseLeave={onMouseLeave}
+      onMouseEnter={onMouseEnter}
+      className={`group relative flex flex-col overflow-hidden rounded-[20px] border backdrop-blur-sm transition-all duration-300 ${
         temLinhaParada ? "animate-pulse-led" : ""
       }`}
       style={{
+        transformStyle: "preserve-3d",
         borderColor: temLinhaParada ? "#FF1F4B" : corParaLocal(local, 0.55),
         backgroundColor: "var(--card-bg)",
         backgroundImage: temLinhaParada
