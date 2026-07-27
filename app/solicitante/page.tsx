@@ -97,7 +97,7 @@ export default function SolicitantePage() {
   useEffect(() => {
   if (!nome) return;
   carregar(nome);
-  const interval = setInterval(() => carregar(nome), 3000);
+  const interval = setInterval(() => carregar(nome), 6000);
   return () => clearInterval(interval);
 }, [nome, carregar]);
 

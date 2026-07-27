@@ -28,7 +28,7 @@ import { useOptionalAuthUser } from "@/lib/use-optional-auth-user";
 import { useFotoAmpliada } from "@/lib/use-foto-ampliada";
 import { auth } from "@/lib/firebase";
 
-const POLL_MS = 4000;
+const POLL_MS = 8000;
 
 type FiltroRapido = "PENDENTE" | "EM_CURSO" | "ENTREGUE" | "ROTAS" | null;
 
