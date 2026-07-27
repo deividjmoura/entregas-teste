@@ -20,8 +20,11 @@ export function useOnlineCount(): number | null {
   useEffect(() => {
     const sessionId = getSessionId();
     let cancelado = false;
+    let emVoo = false; // evita empilhar heartbeats se um anterior ainda não voltou
 
     async function heartbeat() {
+      if (emVoo) return;
+      emVoo = true;
       try {
         const res = await fetch("/api/presenca", {
           method: "POST",
@@ -34,6 +37,8 @@ export function useOnlineCount(): number | null {
         }
       } catch {
         // Silencioso — não é crítico pro funcionamento do app.
+      } finally {
+        emVoo = false;
       }
     }
 
