@@ -28,20 +28,20 @@ export function DeliveryHero({
   const [width, setWidth] = useState(0);
 
   useEffect(() => {
-    if (!containerRef.current) return;
+  if (!containerRef.current) return;
 
-    const resize = () => {
-      setWidth(containerRef.current!.clientWidth);
-    };
+  const resize = () => {
+    if (!containerRef.current) return; 
+    setWidth(containerRef.current.clientWidth); 
+  };
 
-    resize();
+  resize();
 
-    const observer = new ResizeObserver(resize);
+  const observer = new ResizeObserver(resize);
+  observer.observe(containerRef.current);
 
-    observer.observe(containerRef.current);
-
-    return () => observer.disconnect();
-  }, []);
+  return () => observer.disconnect();
+}, []);
 
   useEffect(() => {
     if (!width) return;
