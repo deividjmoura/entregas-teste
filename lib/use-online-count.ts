@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-const HEARTBEAT_MS = 5000;
+const HEARTBEAT_MS = 10000;
 
 function getSessionId(): string {
   if (typeof window === "undefined") return "";
@@ -23,6 +23,8 @@ export function useOnlineCount(): number | null {
     let emVoo = false; // evita empilhar heartbeats se um anterior ainda não voltou
 
     async function heartbeat() {
+      async function heartbeat() {
+      if (document.visibilityState !== "visible") return;
       if (emVoo) return;
       emVoo = true;
       try {
