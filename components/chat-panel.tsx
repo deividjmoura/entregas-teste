@@ -122,7 +122,7 @@ export function ChatPanel({ solicitacaoId, autorNome, autorTipo, onClose }: Chat
   }
 
   return (
-    <div className="fixed inset-x-4 bottom-4 z-30 mx-auto flex h-96 max-w-sm flex-col overflow-hidden rounded-xl border border-panel-border bg-panel shadow-2xl sm:right-4 sm:left-auto">
+    <div className="fixed inset-x-4 bottom-24 z-50 mx-auto flex h-96 max-w-sm flex-col overflow-hidden rounded-xl border border-panel-border bg-panel shadow-2xl sm:right-4 sm:left-auto">
       <div className="flex shrink-0 items-center justify-between border-b border-panel-border px-3 py-2.5">
         <span className="font-display text-sm font-semibold text-ink">Chat</span>
         <button

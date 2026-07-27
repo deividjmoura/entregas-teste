@@ -12,7 +12,7 @@ import { TIPO_LABELS, URGENCIA_LABELS, URGENCIA_COR, formatarHora, formatarDurac
 import { useAuthUser } from "@/lib/use-auth-user";
 import { useFotoAmpliada } from "@/lib/use-foto-ampliada";
 import { useLinhaPredefinida } from "@/lib/use-linha-predefinida";
-import { auth } from "@/lib/firebase";
+import { auth } from "@/lib/firebase";  
 import { EnderecoEstoque } from "@/components/endereco-estoque";
 import { ChatPanel } from "@/components/chat-panel";
 import { useNotificacoes } from "@/lib/use-notificacoes-chat";
@@ -514,11 +514,13 @@ export default function SolicitantePage() {
         />
       )}
 
-      <RudderBar
-        onAbrirFormulario={() => setMostrarFormulario(true)}
-        onAbrirChats={() => setMostrarChats(true)}
-        totalNaoLidas={Object.values(mensagensNaoLidas).reduce((a, b) => a + b, 0)}
-      />
+      {!chatAberto && !mostrarFormulario && !mostrarChats && (
+  <RudderBar
+    onAbrirFormulario={() => setMostrarFormulario(true)}
+    onAbrirChats={() => setMostrarChats(true)}
+    totalNaoLidas={Object.values(mensagensNaoLidas).reduce((a, b) => a + b, 0)}
+  />
+  )}
     </div>
   );
 }
