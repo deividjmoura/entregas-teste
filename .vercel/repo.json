@@ -1,0 +1,11 @@
+{
+  "remoteName": "origin",
+  "projects": [
+    {
+      "id": "prj_fcPGJRpgiXur6R44l2Hx4uTv2V1o",
+      "name": "entregas-teste",
+      "directory": ".",
+      "orgId": "team_l5qXmOaBuzx2BqxlKrWNsOSP"
+    }
+  ]
+}

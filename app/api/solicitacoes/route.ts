@@ -28,9 +28,14 @@ export async function GET(request: NextRequest) {
   const ate = request.nextUrl.searchParams.get("ate");
   const limit = request.nextUrl.searchParams.get("limit");
 
+  // Aceita "status=PENDENTE" (um só) ou "status=PENDENTE,EM_CURSO,ENTREGUE"
+  // (vários de uma vez) — usado pelo painel pra consolidar em 1 request
+  // o que antes eram 3 chamadas separadas em paralelo.
+  const statusList = status ? status.split(",").map((s) => s.trim()).filter(Boolean) : null;
+
   const solicitacoes = await prisma.solicitacao.findMany({
     where: {
-      ...(status ? { status } : {}),
+      ...(statusList ? { status: { in: statusList } } : {}),
       ...(solicitanteNome ? { solicitanteNome } : {}),
       ...(desde || ate
         ? {
