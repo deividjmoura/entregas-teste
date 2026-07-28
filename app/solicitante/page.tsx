@@ -24,6 +24,7 @@ import { BottomSheet } from "@/components/bottom-sheet";
 import { ChatsListModal } from "@/components/chats-list-modal";
 
 const HISTORICO_LIMITE = 5;
+const FAVORITOS_LIMITE = 5;
 const CHAVE_JA_PERGUNTOU = "entregas:linhaPerguntada";
 
 export default function SolicitantePage() {
@@ -34,6 +35,7 @@ export default function SolicitantePage() {
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
   const [mostrarHistorico, setMostrarHistorico] = useState(false);
+  const [mostrarFavoritos, setMostrarFavoritos] = useState(false);
   const [chatAberto, setChatAberto] = useState<string | null>(null);
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [mostrarChats, setMostrarChats] = useState(false);
@@ -245,6 +247,7 @@ export default function SolicitantePage() {
         )
       );
     });
+  const favoritosVisiveis = favoritos.slice(0, FAVORITOS_LIMITE);
 
     useEffect(() => {
     if (!chatAberto) return;
@@ -370,51 +373,64 @@ export default function SolicitantePage() {
 
         {favoritos.length > 0 && (
           <section className="mb-8">
-            <h2 className="mb-3 font-display text-base font-semibold text-ink">
-              ⭐ Favoritos <span className="text-dim">({favoritos.length})</span>
-            </h2>
-            <div className="space-y-2">
-              {favoritos.map((s) => (
-                <Card key={s.id} className="flex items-center justify-between gap-3 px-4 py-3">
-                  <div className="flex items-center gap-3">
-                    {s.temFoto && (
-                      <button type="button" onClick={() => abrirFoto(s.id)} className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-surface-2 text-xs transition-colors hover:bg-accent/10" title="Ver foto">📷</button>
-                    )}
-                    <div>
-                      <div className="text-sm text-ink">{s.descricaoItem}</div>
-                      <div className="font-mono text-[11px] text-dim">
-                        {s.localDestino}{s.rackOuSlide ? ` (${s.rackOuSlide})` : ""} · {TIPO_LABELS[s.tipo]}
-                        {s.entregadorNome ? ` · ${s.entregadorNome}` : ""}
-                        {s.status === "ENTREGUE" && s.entregueEm ? (
-                          <> · entregue às {formatarHora(s.entregueEm)} · {formatarDuracao(new Date(s.entregueEm).getTime() - new Date(s.criadaEm).getTime())}</>
-                        ) : (
-                          <> · aberto às {formatarHora(s.criadaEm)}</>
+            <button
+              onClick={() => setMostrarFavoritos((v) => !v)}
+              className="mb-3 flex items-center gap-2 font-display text-base font-semibold text-ink hover:text-accent"
+            >
+              {mostrarFavoritos ? "▾" : "▸"} ⭐ Favoritos <span className="text-dim">({favoritos.length})</span>
+            </button>
+
+            {mostrarFavoritos && (
+              <>
+                <div className="space-y-2">
+                  {favoritosVisiveis.map((s) => (
+                    <Card key={s.id} className="flex items-center justify-between gap-3 px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        {s.temFoto && (
+                          <button type="button" onClick={() => abrirFoto(s.id)} className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-surface-2 text-xs transition-colors hover:bg-accent/10" title="Ver foto">📷</button>
                         )}
+                        <div>
+                          <div className="text-sm text-ink">{s.descricaoItem}</div>
+                          <div className="font-mono text-[11px] text-dim">
+                            {s.localDestino}{s.rackOuSlide ? ` (${s.rackOuSlide})` : ""} · {TIPO_LABELS[s.tipo]}
+                            {s.entregadorNome ? ` · ${s.entregadorNome}` : ""}
+                            {s.status === "ENTREGUE" && s.entregueEm ? (
+                              <> · entregue às {formatarHora(s.entregueEm)} · {formatarDuracao(new Date(s.entregueEm).getTime() - new Date(s.criadaEm).getTime())}</>
+                            ) : (
+                              <> · aberto às {formatarHora(s.criadaEm)}</>
+                            )}
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                  <div className="flex shrink-0 items-center gap-1.5">
-                    <button
-                      type="button"
-                      onClick={() => favoritar(s.id, !s.favorito)}
-                      title="Remover dos favoritos"
-                      className="flex h-7 w-7 items-center justify-center rounded-lg text-sm text-urgent transition-colors hover:bg-accent/10"
-                    >
-                      ★
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => refazer(s)}
-                      title="Solicitar de novo"
-                      className="flex h-7 w-7 items-center justify-center rounded-lg text-sm text-dim transition-colors hover:bg-accent/10 hover:text-ink"
-                    >
-                      ↻
-                    </button>
-                    <StatusBadge status={s.status} />
-                  </div>
-                </Card>
-              ))}
-            </div>
+                      <div className="flex shrink-0 items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => favoritar(s.id, !s.favorito)}
+                          title="Remover dos favoritos"
+                          className="flex h-7 w-7 items-center justify-center rounded-lg text-sm text-urgent transition-colors hover:bg-accent/10"
+                        >
+                          ★
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => refazer(s)}
+                          title="Solicitar de novo"
+                          className="flex h-7 w-7 items-center justify-center rounded-lg text-sm text-dim transition-colors hover:bg-accent/10 hover:text-ink"
+                        >
+                          ↻
+                        </button>
+                        <StatusBadge status={s.status} />
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+                {favoritos.length > FAVORITOS_LIMITE && (
+                  <p className="mt-3 text-center font-mono text-[11px] text-dim">
+                    mostrando {FAVORITOS_LIMITE} de {favoritos.length}
+                  </p>
+                )}
+              </>
+            )}
           </section>
         )}
 
