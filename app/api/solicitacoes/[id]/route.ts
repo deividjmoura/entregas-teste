@@ -3,31 +3,77 @@ import { prisma } from "@/lib/prisma";
 
 const URGENCIAS_VALIDAS = ["BAIXA", "MEDIA", "CRITICA", "LINHA_PARADA"];
 
+// De onde cada novo status pode vir. EM_ROTA e EM_BAIXA são reversíveis
+// entre si (o entregador pode mudar de ideia no meio da lista), e os dois
+// só nascem a partir de um pedido já aceito (EM_CURSO).
+const STATUS_TRANSICOES_VALIDAS: Record<string, string[]> = {
+  EM_ROTA: ["EM_CURSO", "EM_BAIXA"],
+  EM_BAIXA: ["EM_CURSO", "EM_ROTA"],
+};
+
+/**
+ * Endpoint único pra tudo que é "editar campo de uma solicitação existente":
+ * urgência, transição de status do entregador (achei / não achei) e
+ * favoritar. Em vez de criar uma rota nova pra cada ação, o body decide
+ * qual bloco roda — mantém o número de arquivos de API baixo.
+ */
 export async function PATCH(
   request: NextRequest,
   { params }: { params: { id: string } },
 ) {
   const body = await request.json();
-  const { urgencia } = body;
+  const { urgencia, status, favorito } = body;
 
-  if (!URGENCIAS_VALIDAS.includes(urgencia)) {
-    return NextResponse.json({ erro: "Urgência inválida" }, { status: 400 });
+  // Favoritar independe de status — funciona até em solicitação já
+  // concluída, é só uma marcação do solicitante no histórico.
+  if (favorito !== undefined) {
+    const atualizada = await prisma.solicitacao.update({
+      where: { id: params.id },
+      data: { favorito: Boolean(favorito) },
+    });
+    return NextResponse.json(atualizada);
   }
 
-  const resultado = await prisma.solicitacao.updateMany({
-    where: { id: params.id, status: { in: ["PENDENTE", "EM_CURSO"] } },
-    data: { urgencia },
-  });
-
-  if (resultado.count === 0) {
-    return NextResponse.json(
-      { erro: "Só é possível alterar a urgência de solicitações pendentes ou em curso" },
-      { status: 409 },
-    );
+  // Transição de status feita pelo entregador (achei / não achei o item).
+  if (status !== undefined) {
+    const origensValidas = STATUS_TRANSICOES_VALIDAS[status];
+    if (!origensValidas) {
+      return NextResponse.json({ erro: "Status inválido" }, { status: 400 });
+    }
+    const resultado = await prisma.solicitacao.updateMany({
+      where: { id: params.id, status: { in: origensValidas } },
+      data: { status },
+    });
+    if (resultado.count === 0) {
+      return NextResponse.json(
+        { erro: "Não é possível fazer essa mudança de status agora" },
+        { status: 409 },
+      );
+    }
+    const atualizada = await prisma.solicitacao.findUnique({ where: { id: params.id } });
+    return NextResponse.json(atualizada);
   }
 
-  const atualizada = await prisma.solicitacao.findUnique({ where: { id: params.id } });
-  return NextResponse.json(atualizada);
+  // Alterar urgência (comportamento original).
+  if (urgencia !== undefined) {
+    if (!URGENCIAS_VALIDAS.includes(urgencia)) {
+      return NextResponse.json({ erro: "Urgência inválida" }, { status: 400 });
+    }
+    const resultado = await prisma.solicitacao.updateMany({
+      where: { id: params.id, status: { in: ["PENDENTE", "EM_CURSO"] } },
+      data: { urgencia },
+    });
+    if (resultado.count === 0) {
+      return NextResponse.json(
+        { erro: "Só é possível alterar a urgência de solicitações pendentes ou em curso" },
+        { status: 409 },
+      );
+    }
+    const atualizada = await prisma.solicitacao.findUnique({ where: { id: params.id } });
+    return NextResponse.json(atualizada);
+  }
+
+  return NextResponse.json({ erro: "Nenhum campo válido para atualizar" }, { status: 400 });
 }
 
 export async function DELETE(

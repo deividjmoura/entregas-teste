@@ -18,6 +18,7 @@ const CAMPOS_LISTAGEM = {
   entregueEm: true,
   enderecoEstoque: true,
   enderecoAlteradoPor: true,
+  favorito: true,
 } as const;
 
 export async function GET(request: NextRequest) {

@@ -91,13 +91,14 @@ export default function PainelPage() {
   }
 
   const carregarDashboard = useCallback(async () => {
-    // Antes eram 3 requests em paralelo (um por status). Consolidado numa
-    // única chamada com status=PENDENTE,EM_CURSO,ENTREGUE — o limit soma a
-    // margem das 3 chamadas antigas (200 cada) pra não perder cobertura.
-    const res = await fetch("/api/solicitacoes?status=PENDENTE,EM_CURSO,ENTREGUE&limit=600");
+    // Inclui EM_ROTA/EM_BAIXA — são status intermediários do entregador
+    // ("achei"/"não achei") e também precisam aparecer no painel geral,
+    // senão a solicitação some daqui igual sumia da tela do solicitante.
+    const res = await fetch("/api/solicitacoes?status=PENDENTE,EM_CURSO,EM_ROTA,EM_BAIXA,ENTREGUE&limit=600");
     const todas: SolicitacaoDTO[] = res.ok ? await res.json() : [];
 
-    setAtivos(todas.filter((s) => s.status === "PENDENTE" || s.status === "EM_CURSO"));
+    const STATUS_ATIVOS = ["PENDENTE", "EM_CURSO", "EM_ROTA", "EM_BAIXA"];
+    setAtivos(todas.filter((s) => STATUS_ATIVOS.includes(s.status)));
     setEntreguesRecentes(
       todas.filter((s) => s.status === "ENTREGUE" && s.entregueEm && mesmoDia(s.entregueEm)),
     );

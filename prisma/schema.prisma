@@ -19,6 +19,7 @@ model Solicitacao {
   temFoto             Boolean   @default(false)
   urgencia            String
   status              String    @default("PENDENTE")
+  favorito            Boolean   @default(false)
   solicitanteNome     String
   entregadorNome      String?
   versao              Int       @default(1)

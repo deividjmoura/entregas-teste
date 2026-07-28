@@ -184,14 +184,72 @@ export default function SolicitantePage() {
     }
   }
 
-  const ativas = minhas.filter((s) => s.status === "PENDENTE" || s.status === "EM_CURSO");
-  const concluidas = minhas.filter((s) => s.status === "ENTREGUE" || s.status === "CANCELADA");
+  // Reabre uma solicitação já concluída como uma nova PENDENTE, com os
+  // mesmos dados — usado tanto pelo ícone "refazer" do histórico quanto
+  // pelos favoritos.
+  async function refazer(s: SolicitacaoDTO) {
+    if (!nome) return;
+    setErro(null);
+    try {
+      const res = await fetch("/api/solicitacoes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          tipo: s.tipo,
+          descricaoItem: s.descricaoItem,
+          localDestino: s.localDestino,
+          rackOuSlide: s.rackOuSlide || undefined,
+          urgencia: s.urgencia,
+          solicitanteNome: nome,
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        setErro(data.erro ?? "Falha ao refazer solicitação");
+        return;
+      }
+      await carregar(nome);
+    } catch {
+      setErro("Falha ao refazer solicitação");
+    }
+  }
+
+  async function favoritar(id: string, valor: boolean) {
+    if (!nome) return;
+    const res = await fetch(`/api/solicitacoes/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ favorito: valor }),
+    });
+    if (res.ok) {
+      await carregar(nome);
+    } else {
+      const data = await res.json().catch(() => null);
+      setErro(data?.erro ?? "Falha ao favoritar");
+    }
+  }
+
+  const STATUS_TERMINAIS = ["ENTREGUE", "CANCELADA"];
+  const ativas = minhas.filter((s) => !STATUS_TERMINAIS.includes(s.status));
+  const concluidas = minhas.filter((s) => STATUS_TERMINAIS.includes(s.status));
   const concluidasVisiveis = concluidas.slice(0, HISTORICO_LIMITE);
+  const favoritos = [...minhas]
+    .filter((s) => s.favorito)
+    .sort((a, b) => new Date(b.criadaEm).getTime() - new Date(a.criadaEm).getTime())
+    .filter((s, index, lista) => {
+      const chave = `${s.descricaoItem}__${s.localDestino}__${s.rackOuSlide ?? ""}`;
+      return (
+        index ===
+        lista.findIndex(
+          (outro) => `${outro.descricaoItem}__${outro.localDestino}__${outro.rackOuSlide ?? ""}` === chave,
+        )
+      );
+    });
 
     useEffect(() => {
     if (!chatAberto) return;
     const atual = minhas.find((s) => s.id === chatAberto);
-    if (!atual || atual.status !== "EM_CURSO") {
+    if (!atual || STATUS_TERMINAIS.includes(atual.status)) {
       setChatAberto(null);
     }
   }, [minhas, chatAberto]);
@@ -265,7 +323,7 @@ export default function SolicitantePage() {
                     {s.status === "PENDENTE" && (
                       <ElapsedTime since={s.criadaEm} alertAfterMinutes={5} className="font-mono text-[11px] text-dim" />
                     )}
-                    {s.status === "EM_CURSO" && (
+                    {!STATUS_TERMINAIS.includes(s.status) && s.status !== "PENDENTE" && (
                       <Button
                         variant="outline-progress"
                         size="sm"
@@ -310,6 +368,56 @@ export default function SolicitantePage() {
           </div>
         </section>
 
+        {favoritos.length > 0 && (
+          <section className="mb-8">
+            <h2 className="mb-3 font-display text-base font-semibold text-ink">
+              ⭐ Favoritos <span className="text-dim">({favoritos.length})</span>
+            </h2>
+            <div className="space-y-2">
+              {favoritos.map((s) => (
+                <Card key={s.id} className="flex items-center justify-between gap-3 px-4 py-3">
+                  <div className="flex items-center gap-3">
+                    {s.temFoto && (
+                      <button type="button" onClick={() => abrirFoto(s.id)} className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-surface-2 text-xs transition-colors hover:bg-accent/10" title="Ver foto">📷</button>
+                    )}
+                    <div>
+                      <div className="text-sm text-ink">{s.descricaoItem}</div>
+                      <div className="font-mono text-[11px] text-dim">
+                        {s.localDestino}{s.rackOuSlide ? ` (${s.rackOuSlide})` : ""} · {TIPO_LABELS[s.tipo]}
+                        {s.entregadorNome ? ` · ${s.entregadorNome}` : ""}
+                        {s.status === "ENTREGUE" && s.entregueEm ? (
+                          <> · entregue às {formatarHora(s.entregueEm)} · {formatarDuracao(new Date(s.entregueEm).getTime() - new Date(s.criadaEm).getTime())}</>
+                        ) : (
+                          <> · aberto às {formatarHora(s.criadaEm)}</>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => favoritar(s.id, !s.favorito)}
+                      title="Remover dos favoritos"
+                      className="flex h-7 w-7 items-center justify-center rounded-lg text-sm text-urgent transition-colors hover:bg-accent/10"
+                    >
+                      ★
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => refazer(s)}
+                      title="Solicitar de novo"
+                      className="flex h-7 w-7 items-center justify-center rounded-lg text-sm text-dim transition-colors hover:bg-accent/10 hover:text-ink"
+                    >
+                      ↻
+                    </button>
+                    <StatusBadge status={s.status} />
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </section>
+        )}
+
         <section>
           <button
             onClick={() => setMostrarHistorico((v) => !v)}
@@ -340,7 +448,29 @@ export default function SolicitantePage() {
                         </div>
                       </div>
                     </div>
-                    <StatusBadge status={s.status} />
+                    <div className="flex shrink-0 items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => favoritar(s.id, !s.favorito)}
+                        title={s.favorito ? "Remover dos favoritos" : "Favoritar"}
+                        className={`flex h-7 w-7 items-center justify-center rounded-lg text-sm transition-colors hover:bg-accent/10 ${
+                          s.favorito ? "text-urgent" : "text-dim"
+                        }`}
+                      >
+                        {s.favorito ? "★" : "☆"}
+                      </button>
+                      {s.status === "ENTREGUE" && (
+                        <button
+                          type="button"
+                          onClick={() => refazer(s)}
+                          title="Refazer esta solicitação"
+                          className="flex h-7 w-7 items-center justify-center rounded-lg text-sm text-dim transition-colors hover:bg-accent/10 hover:text-ink"
+                        >
+                          ↻
+                        </button>
+                      )}
+                      <StatusBadge status={s.status} />
+                    </div>
                   </Card>
                 ))}
               </div>

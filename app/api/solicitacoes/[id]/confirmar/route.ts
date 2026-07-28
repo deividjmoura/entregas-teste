@@ -6,13 +6,13 @@ export async function POST(
   { params }: { params: { id: string } },
 ) {
   const resultado = await prisma.solicitacao.updateMany({
-    where: { id: params.id, status: "EM_CURSO" },
+    where: { id: params.id, status: "EM_ROTA" },
     data: { status: "ENTREGUE", versao: { increment: 1 }, entregueEm: new Date() },
   });
 
   if (resultado.count === 0) {
     return NextResponse.json(
-      { erro: "Só é possível confirmar uma entrega que está em curso" },
+      { erro: "Só é possível confirmar uma entrega que está em rota" },
       { status: 409 },
     );
   }

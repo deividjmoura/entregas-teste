@@ -1,6 +1,7 @@
 export const TIPO_LABELS: Record<string, string> = {
-  COMPONENTE_FISICO: "Componente físico",
-  CIRCUITO_ELETRONICO: "Circuito eletrônico",
+  COMPONENTE_FISICO: "Componente",
+  CIRCUITO_ELETRONICO: "Circuito",
+  OUTROS: "Outros",
 };
 
 export const URGENCIA_LABELS: Record<string, string> = {
@@ -26,7 +27,9 @@ export const URGENCIA_COR: Record<string, string> = {
 
 export const STATUS_LABELS: Record<string, string> = {
   PENDENTE: "Pendente",
-  EM_CURSO: "Em curso",
+  EM_CURSO: "Aceito",
+  EM_ROTA: "Em rota",
+  EM_BAIXA: "Em baixa",
   ENTREGUE: "Entregue",
   CANCELADA: "Cancelada",
 };
@@ -41,6 +44,7 @@ export interface SolicitacaoDTO {
   temFoto: boolean;
   urgencia: string;
   status: string;
+  favorito: boolean;
   solicitanteNome: string;
   entregadorNome: string | null;
   criadaEm: string;
