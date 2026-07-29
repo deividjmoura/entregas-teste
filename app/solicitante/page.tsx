@@ -97,7 +97,7 @@ export default function SolicitantePage() {
   useEffect(() => {
   if (!nome) return;
   carregar(nome);
-  const interval = setInterval(() => carregar(nome), 6000);
+  const interval = setInterval(() => carregar(nome), 8000);
   return () => clearInterval(interval);
 }, [nome, carregar]);
 
@@ -229,7 +229,8 @@ export default function SolicitantePage() {
     }
   }
 
-  const ativas = minhas.filter((s) => s.status === "PENDENTE" || s.status === "EM_CURSO");
+  const STATUS_ATIVOS = ["PENDENTE", "EM_CURSO", "EM_ROTA", "EM_BAIXA"];
+  const ativas = minhas.filter((s) => STATUS_ATIVOS.includes(s.status));
   const concluidas = minhas.filter((s) => s.status === "ENTREGUE" || s.status === "CANCELADA");
   const concluidasVisiveis = concluidas.slice(0, HISTORICO_LIMITE);
   const favoritos = [...minhas]
@@ -239,7 +240,8 @@ export default function SolicitantePage() {
     useEffect(() => {
     if (!chatAberto) return;
     const atual = minhas.find((s) => s.id === chatAberto);
-    if (!atual || atual.status !== "EM_CURSO") {
+    const chatPermitido = ["EM_CURSO", "EM_ROTA", "EM_BAIXA"];
+    if (!atual || !chatPermitido.includes(atual.status)) {
       setChatAberto(null);
     }
   }, [minhas, chatAberto]);
@@ -290,7 +292,7 @@ export default function SolicitantePage() {
                     {s.status === "PENDENTE" && (
                       <ElapsedTime since={s.criadaEm} alertAfterMinutes={5} className="font-mono text-[11px] text-dim" />
                     )}
-                    {s.status === "EM_CURSO" && (
+                    {(s.status === "EM_CURSO" || s.status === "EM_ROTA" || s.status === "EM_BAIXA") && (
                       <Button
                         variant="outline-progress"
                         size="sm"

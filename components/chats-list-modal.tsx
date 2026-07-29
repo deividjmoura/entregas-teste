@@ -4,6 +4,8 @@ import { StatusBadge } from "@/components/status-badge";
 import { BottomSheet } from "@/components/bottom-sheet";
 import type { SolicitacaoDTO } from "@/lib/domain";
 
+const STATUS_CHAT = ["EM_CURSO", "EM_ROTA", "EM_BAIXA"];
+
 interface ChatsListModalProps {
   solicitacoes: SolicitacaoDTO[];
   mensagensNaoLidas: Record<string, number>;
@@ -11,18 +13,24 @@ interface ChatsListModalProps {
   onClose: () => void;
 }
 
-export function ChatsListModal({ solicitacoes, mensagensNaoLidas, onAbrirChat, onClose }: ChatsListModalProps) {
-  const emCurso = solicitacoes.filter((s) => s.status === "EM_CURSO");
+export function ChatsListModal({
+  solicitacoes,
+  mensagensNaoLidas,
+  onAbrirChat,
+  onClose,
+}: ChatsListModalProps) {
+  const comChat = solicitacoes.filter((s) => STATUS_CHAT.includes(s.status));
 
   return (
     <BottomSheet titulo="Conversas" onClose={onClose}>
-      {emCurso.length === 0 && (
+      {comChat.length === 0 && (
         <p className="py-8 text-center text-sm text-dim">
-          Nenhuma entrega em curso no momento — o chat abre assim que um entregador assumir sua urgência.
+          Nenhuma entrega ativa no momento — o chat abre assim que um entregador
+          assumir sua urgência.
         </p>
       )}
       <div className="space-y-2">
-        {emCurso.map((s) => (
+        {comChat.map((s) => (
           <button
             key={s.id}
             onClick={() => onAbrirChat(s.id)}

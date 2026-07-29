@@ -21,7 +21,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
   ({ className = "", size = "md", ...props }, ref) => (
     <input
       ref={ref}
-      className={`w-full rounded-xl border border-panel-border bg-surface-2 text-ink outline-none transition-colors placeholder:text-dim/60 focus:border-accent/60 focus:ring-2 focus:ring-accent/20 ${FIELD_SIZES[size]} ${className}`}
+      className={`w-full rounded-xl border border-panel-border bg-surface-2 text-ink outline-none transition-all duration-150 placeholder:text-dim/60 focus:border-accent/60 focus:ring-2 focus:ring-accent/15 disabled:opacity-50 ${FIELD_SIZES[size]} ${className}`}
       {...props}
     />
   ),
@@ -32,7 +32,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
   ({ className = "", size = "md", children, ...props }, ref) => (
     <select
       ref={ref}
-      className={`w-full rounded-xl border border-panel-border bg-surface-2 text-ink outline-none transition-colors focus:border-accent/60 focus:ring-2 focus:ring-accent/20 ${FIELD_SIZES[size]} ${className}`}
+      className={`w-full rounded-xl border border-panel-border bg-surface-2 text-ink outline-none transition-all duration-150 focus:border-accent/60 focus:ring-2 focus:ring-accent/15 disabled:opacity-50 ${FIELD_SIZES[size]} ${className}`}
       {...props}
     >
       {children}

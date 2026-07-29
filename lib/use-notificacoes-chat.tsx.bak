@@ -34,7 +34,7 @@ export function NotificacoesProvider({ children }: { children: React.ReactNode }
     };
 
     buscar();
-    const interval = setInterval(buscar, 8000);
+    const interval = setInterval(buscar, 4000);
 
     return () => clearInterval(interval);
   }, [nome]);

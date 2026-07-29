@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
   const solicitacoes = await prisma.solicitacao.findMany({
     where: {
       [campoFiltro]: nome,
-      status: "EM_CURSO",
+      status: { in: ["EM_CURSO", "EM_ROTA", "EM_BAIXA"] },
     },
     select: {
       id: true,

@@ -1,17 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { IconMoon, IconSun } from "@/components/icons";
 
 const CHAVE = "entregas:tema";
 
 type Variant = "floating" | "menu" | "icon";
 
 interface ThemeToggleProps {
-  /**
-   * floating — botão fixo no canto (legado; preferir menu)
-   * menu — item de lista no side menu (AppShell)
-   * icon — só o botão circular, sem posicionamento fixo
-   */
   variant?: Variant;
   className?: string;
 }
@@ -33,8 +29,8 @@ export function ThemeToggle({ variant = "menu", className = "" }: ThemeTogglePro
   if (!tema) return null;
 
   const label = tema === "dark" ? "Tema claro" : "Tema escuro";
-  const emoji = tema === "dark" ? "☀️" : "🌙";
   const title = tema === "dark" ? "Mudar para tema claro" : "Mudar para tema escuro";
+  const Icon = tema === "dark" ? IconSun : IconMoon;
 
   function alternar() {
     setTema((t) => (t === "dark" ? "light" : "dark"));
@@ -46,12 +42,12 @@ export function ThemeToggle({ variant = "menu", className = "" }: ThemeTogglePro
         type="button"
         onClick={alternar}
         title={title}
-        className={`group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm text-dim transition-colors hover:bg-accent/10 hover:text-ink ${className}`}
+        className={`group flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-dim transition-colors hover:bg-surface-2 hover:text-ink ${className}`}
       >
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-surface-2 text-base leading-none transition-colors group-hover:bg-accent/15">
-          {emoji}
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors group-hover:bg-accent/10 group-hover:text-accent">
+          <Icon className="h-4 w-4" />
         </span>
-        <span className="truncate">{label}</span>
+        <span className="truncate font-medium">{label}</span>
       </button>
     );
   }
@@ -62,22 +58,21 @@ export function ThemeToggle({ variant = "menu", className = "" }: ThemeTogglePro
         type="button"
         onClick={alternar}
         title={title}
-        className={`flex h-10 w-10 items-center justify-center rounded-full border border-panel-border bg-panel text-ink shadow-md transition hover:brightness-110 ${className}`}
+        className={`flex h-9 w-9 items-center justify-center rounded-xl text-dim transition hover:bg-surface-2 hover:text-ink ${className}`}
       >
-        {emoji}
+        <Icon className="h-4 w-4" />
       </button>
     );
   }
 
-  // floating (legado)
   return (
     <button
       type="button"
       onClick={alternar}
       title={title}
-      className={`fixed bottom-4 left-4 z-[200] flex h-10 w-10 items-center justify-center rounded-full border border-panel-border bg-panel text-ink shadow-md transition hover:brightness-110 ${className}`}
+      className={`fixed bottom-4 left-4 z-[200] flex h-10 w-10 items-center justify-center rounded-xl border border-panel-border bg-panel text-ink shadow-soft transition hover:bg-surface-2 ${className}`}
     >
-      {emoji}
+      <Icon className="h-4 w-4" />
     </button>
   );
 }

@@ -2,12 +2,23 @@
 
 import { useEffect, useState } from "react";
 import { ThemeToggle } from "@/components/theme-toggle";
+import {
+  IconMenu,
+  IconClose,
+  IconChevronLeft,
+  IconChevronRight,
+  IconTruck,
+  IconDashboard,
+  IconLogOut,
+  IconRequests,
+  IconUsers,
+} from "@/components/icons";
 
 const CHAVE_COLAPSADA = "entregas:sidebarColapsada";
 
 export interface AppShellItem {
   label: string;
-  icon: string; // emoji — mesmo estilo visual usado no resto do app (💬, 📷, 🛒...)
+  icon: string; // emoji legado — mapeado para SVG abaixo
   onClick: () => void;
 }
 
@@ -18,21 +29,18 @@ interface AppShellProps {
   children: React.ReactNode;
 }
 
-/**
- * Navegação lateral no mesmo idioma visual do resto do app: vidro
- * translúcido, glow de aurora, cantos bem arredondados — a mesma família
- * do Card, da Topbar e do RudderBar.
- *
- * Desktop:
- *  - Expandida: painel cheio encostado na borda esquerda, com avatar,
- *    nome/papel e rótulos completos.
- *  - Recolhida: em vez de uma faixa fina ocupando a tela inteira de cima
- *    a baixo, vira uma pílula flutuante grudada na borda — só os ícones,
- *    centralizada verticalmente, "escapando" pro canto sem tomar o
- *    espaço do conteúdo.
- * Mobile: gaveta (drawer) acionada pelo botão hambúrguer flutuante,
- * igual ao padrão já usado no resto do app.
- */
+/** Mapeia label/emoji → ícone de linha consistente */
+function IconForItem({ label, className = "h-4 w-4" }: { label: string; className?: string }) {
+  const l = label.toLowerCase();
+  if (l.includes("entregador") || l.includes("trocar")) return <IconTruck className={className} />;
+  if (l.includes("solicitante")) return <IconRequests className={className} />;
+  if (l.includes("painel") || l.includes("geral") || l.includes("dashboard"))
+    return <IconDashboard className={className} />;
+  if (l.includes("sair") || l.includes("logout")) return <IconLogOut className={className} />;
+  if (l.includes("user") || l.includes("online")) return <IconUsers className={className} />;
+  return <IconRequests className={className} />;
+}
+
 export function AppShell({ papel, nome, items, children }: AppShellProps) {
   const [colapsada, setColapsada] = useState(false);
   const [pronto, setPronto] = useState(false);
@@ -60,99 +68,84 @@ export function AppShell({ papel, nome, items, children }: AppShellProps) {
 
   return (
     <div className="min-h-screen bg-bg">
-      {/* Hambúrguer — só mobile */}
+      {/* Hambúrguer mobile */}
       <button
         type="button"
         onClick={() => setAbertaMobile(true)}
-        className="fixed left-4 top-4 z-30 flex h-11 w-11 items-center justify-center rounded-2xl border border-panel-border bg-panel/90 text-ink shadow-premium-sm backdrop-blur-md transition-transform active:scale-95 md:hidden"
+        className="fixed left-3 top-3 z-30 flex h-10 w-10 items-center justify-center rounded-xl border border-panel-border bg-panel text-ink shadow-soft transition active:scale-95 md:hidden"
         aria-label="Abrir menu"
       >
-        <span className="text-lg leading-none">☰</span>
+        <IconMenu className="h-5 w-5" />
       </button>
 
-      {/* Overlay — só mobile, com a gaveta aberta */}
       {abertaMobile && (
         <div
           onClick={() => setAbertaMobile(false)}
-          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm md:hidden"
+          className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm md:hidden"
           aria-hidden
         />
       )}
 
-      {/* Painel completo — gaveta no mobile, sidebar expandida no desktop */}
+      {/* Sidebar expandida */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-72 flex-col overflow-hidden rounded-r-3xl border border-l-0 border-panel-border/70 bg-panel/90 shadow-premium backdrop-blur-xl transition-transform duration-300 ease-out md:w-64 ${
+        className={`fixed inset-y-0 left-0 z-50 flex w-[240px] flex-col border-r border-panel-border bg-sidebar-bg transition-transform duration-200 ease-out ${
           abertaMobile ? "translate-x-0" : "-translate-x-full"
         } ${colapsada ? "md:-translate-x-full" : "md:translate-x-0"}`}
       >
-        {/* glow decorativo, ecoando as aurora-blobs do fundo */}
-        <div
-          className="pointer-events-none absolute -left-12 -top-16 h-48 w-48 rounded-full opacity-25 blur-3xl"
-          style={{ background: "radial-gradient(circle, rgba(129,140,248,0.6), transparent 70%)" }}
-          aria-hidden
-        />
-        <div
-          className="pointer-events-none absolute -bottom-16 -right-10 h-40 w-40 rounded-full opacity-20 blur-3xl"
-          style={{ background: "radial-gradient(circle, rgba(45,212,191,0.55), transparent 70%)" }}
-          aria-hidden
-        />
-
-        <div className="relative flex items-center gap-3 border-b border-panel-border/60 px-4 py-5">
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-accent/15 font-display text-sm font-bold text-accent ring-1 ring-accent/30">
+        {/* Header usuário */}
+        <div className="flex items-center gap-3 border-b border-panel-border px-4 py-4">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent/15 font-display text-sm font-semibold text-accent">
             {iniciais}
           </span>
-          <div className="min-w-0">
-            <div className="truncate font-mono text-[10px] uppercase tracking-[0.2em] text-dim">{papel}</div>
-            <div className="truncate font-display text-sm font-semibold text-ink">{nome}</div>
+          <div className="min-w-0 flex-1">
+            <div className="truncate font-mono text-[10px] font-medium uppercase tracking-widest text-dim">
+              {papel}
+            </div>
+            <div className="truncate text-sm font-medium text-ink">{nome}</div>
           </div>
-
-          {/* Recolher — só desktop */}
           <button
             type="button"
             onClick={alternarColapso}
             title="Recolher menu"
-            className="ml-auto hidden h-8 w-8 shrink-0 items-center justify-center rounded-xl text-dim transition-colors hover:bg-surface-2 hover:text-ink md:flex"
+            className="hidden h-8 w-8 shrink-0 items-center justify-center rounded-lg text-dim transition hover:bg-surface-2 hover:text-ink md:flex"
           >
-            <span className="text-xs">◂</span>
+            <IconChevronLeft className="h-4 w-4" />
           </button>
-          {/* Fechar gaveta — só mobile */}
           <button
             type="button"
             onClick={() => setAbertaMobile(false)}
             title="Fechar menu"
-            className="ml-auto flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-dim transition-colors hover:bg-surface-2 hover:text-ink md:hidden"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-dim transition hover:bg-surface-2 hover:text-ink md:hidden"
           >
-            ✕
+            <IconClose className="h-4 w-4" />
           </button>
         </div>
 
-        <nav className="relative flex flex-1 flex-col gap-1 overflow-y-auto p-3">
+        {/* Nav */}
+        <nav className="flex flex-1 flex-col gap-0.5 overflow-y-auto p-2">
           {items.map((item) => (
             <button
               key={item.label}
               type="button"
               onClick={() => acionar(item.onClick)}
-              className="group flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm text-dim transition-colors hover:bg-accent/10 hover:text-ink"
+              className="group flex items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-dim transition-colors hover:bg-surface-2 hover:text-ink"
             >
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-surface-2 text-base leading-none transition-colors group-hover:bg-accent/15">
-                {item.icon}
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-dim transition-colors group-hover:bg-accent/10 group-hover:text-accent">
+                <IconForItem label={item.label} />
               </span>
-              <span className="truncate">{item.label}</span>
+              <span className="truncate font-medium">{item.label}</span>
             </button>
           ))}
 
-          {/* Tema — fica no menu, sem botão flutuante permanente */}
-          <div className="mt-auto border-t border-panel-border/60 pt-2">
+          <div className="mt-auto border-t border-panel-border pt-2">
             <ThemeToggle variant="menu" />
           </div>
         </nav>
       </aside>
 
-      {/* Pílula flutuante — só desktop, só quando recolhida: os ícones
-         "espiando" pela borda, sem ocupar a altura inteira da tela nem
-         empurrar o conteúdo. */}
+      {/* Rail colapsado (desktop) */}
       <div
-        className={`fixed left-4 top-1/2 z-50 hidden -translate-y-1/2 flex-col items-center gap-1 rounded-full border border-panel-border bg-panel/90 p-1.5 shadow-premium ring-1 ring-accent/10 backdrop-blur-xl transition-opacity duration-300 md:flex ${
+        className={`fixed left-3 top-1/2 z-50 hidden -translate-y-1/2 flex-col items-center gap-1 rounded-2xl border border-panel-border bg-panel p-1.5 shadow-soft-md transition-opacity duration-200 md:flex ${
           colapsada && pronto ? "opacity-100" : "pointer-events-none opacity-0"
         }`}
       >
@@ -160,40 +153,42 @@ export function AppShell({ papel, nome, items, children }: AppShellProps) {
           type="button"
           onClick={alternarColapso}
           title={`${nome} — expandir menu`}
-          className="flex h-10 w-10 items-center justify-center rounded-full bg-accent/15 font-display text-xs font-bold text-accent ring-1 ring-accent/30 transition-transform hover:scale-105"
+          className="flex h-9 w-9 items-center justify-center rounded-xl bg-accent/15 font-display text-xs font-semibold text-accent transition hover:scale-105"
         >
           {iniciais}
         </button>
-
-        <span className="my-0.5 h-px w-6 bg-panel-border" />
-
+        <span className="my-0.5 h-px w-5 bg-panel-border" />
         {items.map((item) => (
           <button
             key={item.label}
             type="button"
             onClick={item.onClick}
             title={item.label}
-            className="flex h-10 w-10 items-center justify-center rounded-full text-base text-dim transition-colors hover:bg-surface-2 hover:text-ink"
+            className="flex h-9 w-9 items-center justify-center rounded-xl text-dim transition hover:bg-surface-2 hover:text-ink"
           >
-            {item.icon}
+            <IconForItem label={item.label} className="h-4 w-4" />
           </button>
         ))}
-
-        <ThemeToggle variant="icon" className="!h-10 !w-10 !border-0 !bg-transparent !shadow-none" />
-
-        <span className="my-0.5 h-px w-6 bg-panel-border" />
-
+        <ThemeToggle variant="icon" className="!h-9 !w-9 !border-0 !bg-transparent !shadow-none" />
+        <span className="my-0.5 h-px w-5 bg-panel-border" />
         <button
           type="button"
           onClick={alternarColapso}
           title="Expandir menu"
-          className="flex h-8 w-8 items-center justify-center rounded-full text-dim transition-colors hover:bg-surface-2 hover:text-ink"
+          className="flex h-7 w-7 items-center justify-center rounded-lg text-dim transition hover:bg-surface-2 hover:text-ink"
         >
-          <span className="text-xs">▸</span>
+          <IconChevronRight className="h-3.5 w-3.5" />
         </button>
       </div>
 
-      <div className={`transition-[padding] duration-300 ${colapsada ? "md:pl-24" : "md:pl-64"}`}>{children}</div>
+      {/* Conteúdo */}
+      <div
+        className={`min-h-screen transition-[padding] duration-200 ${
+          colapsada ? "md:pl-20" : "md:pl-[240px]"
+        }`}
+      >
+        {children}
+      </div>
     </div>
   );
 }

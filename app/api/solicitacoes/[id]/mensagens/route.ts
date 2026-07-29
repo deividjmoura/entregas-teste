@@ -22,9 +22,10 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
   }
 
   const solicitacao = await prisma.solicitacao.findUnique({ where: { id: params.id } });
-  if (!solicitacao || solicitacao.status !== "EM_CURSO") {
+  const statusChatOk = ["EM_CURSO", "EM_ROTA", "EM_BAIXA"];
+  if (!solicitacao || !statusChatOk.includes(solicitacao.status)) {
     return NextResponse.json(
-      { erro: "Chat só está disponível enquanto a entrega está em curso" },
+      { erro: "Chat só está disponível enquanto a entrega está ativa (em curso, em rota ou em baixa)" },
       { status: 409 },
     );
   }
