@@ -86,8 +86,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <NotificacoesProvider>
               <ModalNome />
               <div className="relative min-h-screen">{children}</div>
-              <ThemeToggle />
-            </NotificacoesProvider>
+              </NotificacoesProvider>
           </PresenceProvider>
         </AuthProvider>
       </body>

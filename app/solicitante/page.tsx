@@ -54,6 +54,11 @@ export default function SolicitantePage() {
   const { mensagensNaoLidas, limparNotificacoes } = useNotificacoes();
 
   useEffect(() => {
+    localStorage.setItem("entregas:perfil", "solicitante");
+  }, []);
+
+
+  useEffect(() => {
     if (!linhaCarregada) return;
     if (linhaPredefinida) {
       setLocalDestino((atual) => atual || linhaPredefinida);
@@ -342,19 +347,43 @@ export default function SolicitantePage() {
             <h2 className="mb-3 font-display text-base font-semibold text-ink">
               ⭐ Favoritos <span className="text-dim">({favoritos.length})</span>
             </h2>
-            <div className="flex flex-wrap gap-2">
+            <div className="space-y-2">
               {favoritos.map((s) => (
-                <button
+                <Card
                   key={s.id}
-                  type="button"
-                  onClick={() => refazer(s)}
-                  title="Solicitar de novo"
-                  className="flex items-center gap-2 rounded-full border border-panel-border bg-surface-2 px-3 py-1.5 text-xs text-ink transition-colors hover:border-accent/50"
+                  className="flex items-center justify-between gap-3 px-4 py-3"
+                  style={{ borderLeftWidth: 3, borderLeftColor: URGENCIA_COR[s.urgencia] ?? "rgb(var(--color-accent))" }}
                 >
-                  <span>{s.descricaoItem}</span>
-                  <span className="text-dim">· {s.localDestino}</span>
-                  <span className="text-accent">↻</span>
-                </button>
+                  <div className="min-w-0">
+                    <div className="truncate text-sm text-ink">{s.descricaoItem}</div>
+                    <div className="font-mono text-[11px] text-dim">
+                      {s.localDestino}
+                      {s.rackOuSlide ? ` (${s.rackOuSlide})` : ""}
+                      {" · "}
+                      {TIPO_LABELS[s.tipo] ?? s.tipo}
+                      {s.urgencia ? ` · ${URGENCIA_LABELS[s.urgencia] ?? s.urgencia}` : ""}
+                    </div>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => favoritar(s.id, false)}
+                      title="Remover dos favoritos"
+                      className="flex h-8 w-8 items-center justify-center rounded-lg text-sm text-urgent transition-colors hover:bg-urgent/10"
+                    >
+                      ★
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => refazer(s)}
+                      title="Solicitar de novo"
+                      className="flex h-8 items-center gap-1.5 rounded-lg border border-panel-border bg-surface-2 px-2.5 text-xs font-medium text-ink transition-colors hover:border-accent/50 hover:bg-accent/10"
+                    >
+                      <span>↻</span>
+                      <span>Refazer</span>
+                    </button>
+                  </div>
+                </Card>
               ))}
             </div>
           </section>
@@ -443,6 +472,7 @@ export default function SolicitantePage() {
           autorNome={nome!}
           autorTipo="SOLICITANTE"
           onClose={() => setChatAberto(null)}
+          onAbrir={() => limparNotificacoes(chatAberto)}
         />
       )}
       <ImageLightbox src={fotoAmpliada} onClose={fecharFoto} />

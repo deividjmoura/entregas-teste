@@ -1,3 +1,138 @@
+#!/usr/bin/env bash
+# =============================================================================
+#  FIX DEFINITIVO — envio de mensagens (solicitante e entregador)
+# =============================================================================
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "$0")" && pwd)"
+cd "$ROOT"
+
+echo "▶ Reescrevendo API de mensagens + ChatPanel…"
+
+# -----------------------------------------------------------------------------
+# 1. API — status corretos + erros claros
+# -----------------------------------------------------------------------------
+mkdir -p "app/api/solicitacoes/[id]/mensagens"
+
+cat > "app/api/solicitacoes/[id]/mensagens/route.ts" << 'EOF'
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+
+const STATUS_CHAT = ["EM_CURSO", "EM_ROTA", "EM_BAIXA"] as const;
+
+export async function GET(
+  _request: NextRequest,
+  { params }: { params: { id: string } },
+) {
+  try {
+    const mensagens = await prisma.mensagem.findMany({
+      where: { solicitacaoId: params.id },
+      orderBy: { criadaEm: "asc" },
+    });
+    return NextResponse.json(mensagens);
+  } catch (e) {
+    console.error("[mensagens GET]", e);
+    return NextResponse.json({ erro: "Falha ao carregar mensagens" }, { status: 500 });
+  }
+}
+
+export async function POST(
+  request: NextRequest,
+  { params }: { params: { id: string } },
+) {
+  try {
+    const body = await request.json();
+    const autorNome = String(body?.autorNome ?? "").trim();
+    const autorTipo = String(body?.autorTipo ?? "").trim();
+    const texto = String(body?.texto ?? "").trim();
+
+    if (!autorNome || !autorTipo || !texto) {
+      return NextResponse.json(
+        { erro: "Campos obrigatórios faltando (autorNome, autorTipo, texto)" },
+        { status: 400 },
+      );
+    }
+    if (!["SOLICITANTE", "ENTREGADOR"].includes(autorTipo)) {
+      return NextResponse.json({ erro: "autorTipo inválido" }, { status: 400 });
+    }
+
+    const solicitacao = await prisma.solicitacao.findUnique({
+      where: { id: params.id },
+      select: { id: true, status: true },
+    });
+
+    if (!solicitacao) {
+      return NextResponse.json({ erro: "Solicitação não encontrada" }, { status: 404 });
+    }
+
+    if (!STATUS_CHAT.includes(solicitacao.status as (typeof STATUS_CHAT)[number])) {
+      return NextResponse.json(
+        {
+          erro: `Chat indisponível para status "${solicitacao.status}". Use quando estiver em curso, em rota ou em baixa.`,
+          statusAtual: solicitacao.status,
+        },
+        { status: 409 },
+      );
+    }
+
+    const mensagem = await prisma.mensagem.create({
+      data: {
+        solicitacaoId: params.id,
+        autorNome,
+        autorTipo,
+        texto,
+      },
+    });
+
+    return NextResponse.json(mensagem, { status: 201 });
+  } catch (e) {
+    console.error("[mensagens POST]", e);
+    return NextResponse.json({ erro: "Falha interna ao salvar mensagem" }, { status: 500 });
+  }
+}
+EOF
+echo "✓ API mensagens reescrita"
+
+# -----------------------------------------------------------------------------
+# 2. Confirmar → apaga chat
+# -----------------------------------------------------------------------------
+mkdir -p "app/api/solicitacoes/[id]/confirmar"
+cat > "app/api/solicitacoes/[id]/confirmar/route.ts" << 'EOF'
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+
+export async function POST(
+  _request: NextRequest,
+  { params }: { params: { id: string } },
+) {
+  const resultado = await prisma.solicitacao.updateMany({
+    where: { id: params.id, status: "EM_ROTA" },
+    data: {
+      status: "ENTREGUE",
+      versao: { increment: 1 },
+      entregueEm: new Date(),
+    },
+  });
+
+  if (resultado.count === 0) {
+    return NextResponse.json(
+      { erro: "Só é possível confirmar uma entrega que está em rota" },
+      { status: 409 },
+    );
+  }
+
+  await prisma.mensagem.deleteMany({ where: { solicitacaoId: params.id } });
+
+  const atualizada = await prisma.solicitacao.findUnique({ where: { id: params.id } });
+  return NextResponse.json(atualizada);
+}
+EOF
+echo "✓ Confirmar apaga mensagens"
+
+# -----------------------------------------------------------------------------
+# 3. ChatPanel robusto (sem prop obrigatória que quebre o pai)
+# -----------------------------------------------------------------------------
+cat > components/chat-panel.tsx << 'EOF'
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
@@ -260,3 +395,75 @@ export function ChatPanel({
     </div>
   );
 }
+EOF
+echo "✓ ChatPanel reescrito"
+
+# -----------------------------------------------------------------------------
+# 4. Solicitante — garante onAbrir seguro
+# -----------------------------------------------------------------------------
+SOL="app/solicitante/page.tsx"
+if [[ -f "$SOL" ]]; then
+  python3 - << 'PY'
+from pathlib import Path
+path = Path("app/solicitante/page.tsx")
+text = path.read_text(encoding="utf-8")
+
+# Garante bloco ChatPanel correto
+import re
+pattern = r"\{chatAberto && \(\s*<ChatPanel[\s\S]*?/>\s*\)\}"
+replacement = '''{chatAberto && (
+        <ChatPanel
+          solicitacaoId={chatAberto}
+          autorNome={nome!}
+          autorTipo="SOLICITANTE"
+          onClose={() => setChatAberto(null)}
+          onAbrir={() => limparNotificacoes(chatAberto)}
+        />
+      )}'''
+new_text, n = re.subn(pattern, replacement, text, count=1)
+if n:
+    path.write_text(new_text, encoding="utf-8")
+    print("✓ Solicitante ChatPanel atualizado")
+else:
+    print("ℹ Solicitante: bloco ChatPanel não alterado (já ok ou padrão diferente)")
+PY
+fi
+
+ENT="app/entregador/page.tsx"
+if [[ -f "$ENT" ]]; then
+  python3 - << 'PY'
+from pathlib import Path
+import re
+path = Path("app/entregador/page.tsx")
+text = path.read_text(encoding="utf-8")
+pattern = r"\{chatAberto && \(\s*<ChatPanel[\s\S]*?/>\s*\)\}"
+replacement = '''{chatAberto && (
+        <ChatPanel
+          solicitacaoId={chatAberto}
+          autorNome={nome!}
+          autorTipo="ENTREGADOR"
+          onClose={() => setChatAberto(null)}
+          onAbrir={() => limparNotificacoes(chatAberto)}
+        />
+      )}'''
+new_text, n = re.subn(pattern, replacement, text, count=1)
+if n:
+    path.write_text(new_text, encoding="utf-8")
+    print("✓ Entregador ChatPanel atualizado")
+else:
+    print("ℹ Entregador: bloco ChatPanel não alterado")
+PY
+fi
+
+echo ""
+echo "✅ Fix aplicado."
+echo ""
+echo "IMPORTANTE — reinicie limpo:"
+echo "  rm -rf .next"
+echo "  npm run dev"
+echo ""
+echo "Depois hard refresh (Ctrl+Shift+R)."
+echo ""
+echo "Se ainda falhar, abra o DevTools (F12) → Network →"
+echo "filtre por 'mensagens' → clique Enviar → veja o status e o body"
+echo "da resposta (erro / statusAtual). Me mande esse JSON se precisar."

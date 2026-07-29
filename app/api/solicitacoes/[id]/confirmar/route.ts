@@ -7,7 +7,11 @@ export async function POST(
 ) {
   const resultado = await prisma.solicitacao.updateMany({
     where: { id: params.id, status: "EM_ROTA" },
-    data: { status: "ENTREGUE", versao: { increment: 1 }, entregueEm: new Date() },
+    data: {
+      status: "ENTREGUE",
+      versao: { increment: 1 },
+      entregueEm: new Date(),
+    },
   });
 
   if (resultado.count === 0) {
@@ -16,6 +20,8 @@ export async function POST(
       { status: 409 },
     );
   }
+
+  await prisma.mensagem.deleteMany({ where: { solicitacaoId: params.id } });
 
   const atualizada = await prisma.solicitacao.findUnique({ where: { id: params.id } });
   return NextResponse.json(atualizada);
