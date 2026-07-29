@@ -13,7 +13,6 @@ import { useAuthUser } from "@/lib/use-auth-user";
 import { useFotoAmpliada } from "@/lib/use-foto-ampliada";
 import { useLinhaPredefinida } from "@/lib/use-linha-predefinida";
 import { auth } from "@/lib/firebase";  
-import { EnderecoEstoque } from "@/components/endereco-estoque";
 import { ChatPanel } from "@/components/chat-panel";
 import { useNotificacoes } from "@/lib/use-notificacoes-chat";
 import { Button } from "@/components/ui/button";
@@ -22,9 +21,9 @@ import { Card } from "@/components/ui/card";
 import { RudderBar } from "@/components/rudder-bar";
 import { BottomSheet } from "@/components/bottom-sheet";
 import { ChatsListModal } from "@/components/chats-list-modal";
+import { AppShell } from "@/components/app-shell";
 
 const HISTORICO_LIMITE = 5;
-const FAVORITOS_LIMITE = 5;
 const CHAVE_JA_PERGUNTOU = "entregas:linhaPerguntada";
 
 export default function SolicitantePage() {
@@ -35,7 +34,6 @@ export default function SolicitantePage() {
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
   const [mostrarHistorico, setMostrarHistorico] = useState(false);
-  const [mostrarFavoritos, setMostrarFavoritos] = useState(false);
   const [chatAberto, setChatAberto] = useState<string | null>(null);
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [mostrarChats, setMostrarChats] = useState(false);
@@ -231,28 +229,17 @@ export default function SolicitantePage() {
     }
   }
 
-  const STATUS_TERMINAIS = ["ENTREGUE", "CANCELADA"];
-  const ativas = minhas.filter((s) => !STATUS_TERMINAIS.includes(s.status));
-  const concluidas = minhas.filter((s) => STATUS_TERMINAIS.includes(s.status));
+  const ativas = minhas.filter((s) => s.status === "PENDENTE" || s.status === "EM_CURSO");
+  const concluidas = minhas.filter((s) => s.status === "ENTREGUE" || s.status === "CANCELADA");
   const concluidasVisiveis = concluidas.slice(0, HISTORICO_LIMITE);
   const favoritos = [...minhas]
     .filter((s) => s.favorito)
-    .sort((a, b) => new Date(b.criadaEm).getTime() - new Date(a.criadaEm).getTime())
-    .filter((s, index, lista) => {
-      const chave = `${s.descricaoItem}__${s.localDestino}__${s.rackOuSlide ?? ""}`;
-      return (
-        index ===
-        lista.findIndex(
-          (outro) => `${outro.descricaoItem}__${outro.localDestino}__${outro.rackOuSlide ?? ""}` === chave,
-        )
-      );
-    });
-  const favoritosVisiveis = favoritos.slice(0, FAVORITOS_LIMITE);
+    .sort((a, b) => new Date(b.criadaEm).getTime() - new Date(a.criadaEm).getTime());
 
     useEffect(() => {
     if (!chatAberto) return;
     const atual = minhas.find((s) => s.id === chatAberto);
-    if (!atual || STATUS_TERMINAIS.includes(atual.status)) {
+    if (!atual || atual.status !== "EM_CURSO") {
       setChatAberto(null);
     }
   }, [minhas, chatAberto]);
@@ -260,33 +247,16 @@ export default function SolicitantePage() {
   if (!nome) return null;
 
   return (
-    <div className="min-h-screen bg-bg">
-      <header className="sticky top-0 z-10 flex items-center justify-between border-b border-panel-border/60 bg-bg/70 px-6 py-4 backdrop-blur-md">
-        <div>
-          <div className="font-mono text-xs uppercase tracking-[0.2em] text-dim">solicitante</div>
-          <h1 className="font-display text-lg font-semibold text-ink">Olá, {nome}</h1>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="font-mono normal-case font-medium"
-            onClick={() => router.push("/painel")}
-          >
-            painel geral
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="font-mono normal-case font-medium"
-            onClick={sair}
-          >
-            sair
-          </Button>
-        </div>
-      </header>
-
-      <main className="mx-auto max-w-2xl px-6 py-6 pb-32">
+    <AppShell
+      papel="solicitante"
+      nome={nome}
+      items={[
+        { label: "Trocar p/ entregador", icon: "🔄", onClick: () => router.push("/entregador") },
+        { label: "Painel geral", icon: "📋", onClick: () => router.push("/painel") },
+        { label: "Sair", icon: "🚪", onClick: sair },
+      ]}
+    >
+      <main className="mx-auto max-w-2xl px-6 pb-32 pt-20 md:pt-6">
 
         <section className="mb-8">
           <h2 className="mb-3 font-display text-base font-semibold text-ink">
@@ -313,12 +283,6 @@ export default function SolicitantePage() {
                           {s.entregadorNome ? ` · ${s.entregadorNome}` : ""}
                           {" · aberto às "}{formatarHora(s.criadaEm)}
                         </span>
-                        <EnderecoEstoque
-                          solicitacaoId={s.id}
-                          endereco={s.enderecoEstoque ?? null}
-                          onAtualizado={() => {}}
-                          somenteLeitura
-                        />
                       </div>
                     </div>
                   </div>
@@ -326,7 +290,7 @@ export default function SolicitantePage() {
                     {s.status === "PENDENTE" && (
                       <ElapsedTime since={s.criadaEm} alertAfterMinutes={5} className="font-mono text-[11px] text-dim" />
                     )}
-                    {!STATUS_TERMINAIS.includes(s.status) && s.status !== "PENDENTE" && (
+                    {s.status === "EM_CURSO" && (
                       <Button
                         variant="outline-progress"
                         size="sm"
@@ -373,64 +337,24 @@ export default function SolicitantePage() {
 
         {favoritos.length > 0 && (
           <section className="mb-8">
-            <button
-              onClick={() => setMostrarFavoritos((v) => !v)}
-              className="mb-3 flex items-center gap-2 font-display text-base font-semibold text-ink hover:text-accent"
-            >
-              {mostrarFavoritos ? "▾" : "▸"} ⭐ Favoritos <span className="text-dim">({favoritos.length})</span>
-            </button>
-
-            {mostrarFavoritos && (
-              <>
-                <div className="space-y-2">
-                  {favoritosVisiveis.map((s) => (
-                    <Card key={s.id} className="flex items-center justify-between gap-3 px-4 py-3">
-                      <div className="flex items-center gap-3">
-                        {s.temFoto && (
-                          <button type="button" onClick={() => abrirFoto(s.id)} className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-surface-2 text-xs transition-colors hover:bg-accent/10" title="Ver foto">📷</button>
-                        )}
-                        <div>
-                          <div className="text-sm text-ink">{s.descricaoItem}</div>
-                          <div className="font-mono text-[11px] text-dim">
-                            {s.localDestino}{s.rackOuSlide ? ` (${s.rackOuSlide})` : ""} · {TIPO_LABELS[s.tipo]}
-                            {s.entregadorNome ? ` · ${s.entregadorNome}` : ""}
-                            {s.status === "ENTREGUE" && s.entregueEm ? (
-                              <> · entregue às {formatarHora(s.entregueEm)} · {formatarDuracao(new Date(s.entregueEm).getTime() - new Date(s.criadaEm).getTime())}</>
-                            ) : (
-                              <> · aberto às {formatarHora(s.criadaEm)}</>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex shrink-0 items-center gap-1.5">
-                        <button
-                          type="button"
-                          onClick={() => favoritar(s.id, !s.favorito)}
-                          title="Remover dos favoritos"
-                          className="flex h-7 w-7 items-center justify-center rounded-lg text-sm text-urgent transition-colors hover:bg-accent/10"
-                        >
-                          ★
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => refazer(s)}
-                          title="Solicitar de novo"
-                          className="flex h-7 w-7 items-center justify-center rounded-lg text-sm text-dim transition-colors hover:bg-accent/10 hover:text-ink"
-                        >
-                          ↻
-                        </button>
-                        <StatusBadge status={s.status} />
-                      </div>
-                    </Card>
-                  ))}
-                </div>
-                {favoritos.length > FAVORITOS_LIMITE && (
-                  <p className="mt-3 text-center font-mono text-[11px] text-dim">
-                    mostrando {FAVORITOS_LIMITE} de {favoritos.length}
-                  </p>
-                )}
-              </>
-            )}
+            <h2 className="mb-3 font-display text-base font-semibold text-ink">
+              ⭐ Favoritos <span className="text-dim">({favoritos.length})</span>
+            </h2>
+            <div className="flex flex-wrap gap-2">
+              {favoritos.map((s) => (
+                <button
+                  key={s.id}
+                  type="button"
+                  onClick={() => refazer(s)}
+                  title="Solicitar de novo"
+                  className="flex items-center gap-2 rounded-full border border-panel-border bg-surface-2 px-3 py-1.5 text-xs text-ink transition-colors hover:border-accent/50"
+                >
+                  <span>{s.descricaoItem}</span>
+                  <span className="text-dim">· {s.localDestino}</span>
+                  <span className="text-accent">↻</span>
+                </button>
+              ))}
+            </div>
           </section>
         )}
 
@@ -667,6 +591,6 @@ export default function SolicitantePage() {
     totalNaoLidas={Object.values(mensagensNaoLidas).reduce((a, b) => a + b, 0)}
   />
   )}
-    </div>
+    </AppShell>
   );
 }

@@ -23,6 +23,7 @@ import { auth } from "@/lib/firebase";
 import { useNotificacoes } from "@/lib/use-notificacoes-chat";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { AppShell } from "@/components/app-shell";
 
 function ordenarGrupo(lista: SolicitacaoDTO[]): SolicitacaoDTO[] {
   return [...lista].sort((a, b) => {
@@ -170,6 +171,24 @@ export default function EntregadorPage() {
     }
   }
 
+  // Confirma um item específico — útil quando os itens em rota vão pra
+  // locais diferentes e cada entrega precisa ser fechada na hora, sem
+  // esperar concluir a lista inteira.
+  async function confirmarItem(id: string) {
+    setAtualizandoId(id);
+    setErro(null);
+    try {
+      const res = await fetch(`/api/solicitacoes/${id}/confirmar`, { method: "POST" });
+      if (!res.ok) {
+        const data = await res.json();
+        setErro(data.erro ?? "Não foi possível confirmar a entrega");
+      }
+      await carregar();
+    } finally {
+      setAtualizandoId(null);
+    }
+  }
+
   // Concluir lista: confirma de uma vez todos os itens que já estão em
   // rota (achados) — reaproveita a rota de confirmar já existente.
   async function concluirLista() {
@@ -223,39 +242,23 @@ export default function EntregadorPage() {
   if (!nome) return null;
 
   return (
-    <main className="mx-auto w-full max-w-[1800px] px-6">
-      <header className="mb-8 mt-10 flex items-center justify-between">
-        <div>
-          <div className="font-mono text-xs uppercase tracking-[0.2em] text-dim">entregador</div>
-          <h1 className="font-display text-2xl font-semibold text-ink">Olá, {nome}</h1>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="font-mono normal-case font-medium"
-            onClick={() => router.push("/painel")}
-          >
-            painel geral
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="font-mono normal-case font-medium"
-            onClick={sair}
-          >
-            sair
-          </Button>
-        </div>
-      </header>
+    <AppShell
+      papel="entregador"
+      nome={nome}
+      items={[
+        { label: "Trocar p/ solicitante", icon: "🔄", onClick: () => router.push("/solicitante") },
+        { label: "Painel geral", icon: "📋", onClick: () => router.push("/painel") },
+        { label: "Sair", icon: "🚪", onClick: sair },
+      ]}
+    >
+      <main className="mx-auto w-full max-w-[1800px] px-6 pb-10 pt-20 md:pt-10">
+        {erro && (
+          <div className="mb-5 rounded-xl border border-critical/40 bg-critical/10 px-4 py-2.5 text-sm text-critical">
+            {erro}
+          </div>
+        )}
 
-      {erro && (
-        <div className="mb-5 rounded-xl border border-critical/40 bg-critical/10 px-4 py-2.5 text-sm text-critical">
-          {erro}
-        </div>
-      )}
-
-      <div className="pb-28">
+        <div className="pb-28">
         {minhasProprias.length > 0 && (
           <section className="mb-8">
             <div className="mb-3 flex items-center justify-between">
@@ -319,7 +322,17 @@ export default function EntregadorPage() {
                         {atualizandoId === s.id ? "..." : "✅ Achei"}
                       </Button>
                     )}
-                    {(s.status === "EM_CURSO" || s.status === "EM_ROTA") && (
+                    {s.status === "EM_ROTA" && (
+                      <Button
+                        variant="success"
+                        size="sm"
+                        disabled={atualizandoId === s.id}
+                        onClick={() => confirmarItem(s.id)}
+                      >
+                        {atualizandoId === s.id ? "..." : "📦 Confirmar entrega"}
+                      </Button>
+                    )}
+                    {s.status === "EM_CURSO" && (
                       <Button
                         variant="ghost"
                         size="sm"
@@ -444,7 +457,7 @@ export default function EntregadorPage() {
       </div>
 
       {selecionados.size > 0 && (
-        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-panel-border bg-panel/95 px-6 py-3 backdrop-blur-md">
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-panel-border bg-panel/95 px-6 py-3 backdrop-blur-md md:pl-60">
           <div className="mx-auto flex max-w-[1800px] items-center justify-between">
             <span className="font-mono text-sm text-ink">
               🛒 {selecionados.size} selecionado{selecionados.size > 1 ? "s" : ""}
@@ -473,6 +486,7 @@ export default function EntregadorPage() {
           onClose={() => setChatAberto(null)}
         />
       )}
-    </main>
+      </main>
+    </AppShell>
   );
 }

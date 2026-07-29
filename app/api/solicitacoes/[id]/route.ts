@@ -3,12 +3,13 @@ import { prisma } from "@/lib/prisma";
 
 const URGENCIAS_VALIDAS = ["BAIXA", "MEDIA", "CRITICA", "LINHA_PARADA"];
 
-// De onde cada novo status pode vir. EM_ROTA e EM_BAIXA são reversíveis
-// entre si (o entregador pode mudar de ideia no meio da lista), e os dois
-// só nascem a partir de um pedido já aceito (EM_CURSO).
+// De onde cada novo status pode vir. EM_ROTA ainda pode nascer de EM_BAIXA
+// (o entregador corrige um "não achei" anterior e confirma que achou),
+// mas o caminho contrário — ir de EM_ROTA pra EM_BAIXA — não é mais
+// permitido: depois de marcar "achei" não faz sentido voltar a "não achei".
 const STATUS_TRANSICOES_VALIDAS: Record<string, string[]> = {
   EM_ROTA: ["EM_CURSO", "EM_BAIXA"],
-  EM_BAIXA: ["EM_CURSO", "EM_ROTA"],
+  EM_BAIXA: ["EM_CURSO"],
 };
 
 /**
