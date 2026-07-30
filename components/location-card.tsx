@@ -1,126 +1,28 @@
 "use client";
-
 import { useEffect, useState, type ReactNode } from "react";
 import { corParaLocal } from "@/lib/domain";
-import { useTilt } from "@/lib/use-tilt";
-
-interface LocationCardProps {
-  local: string;
-  contagem: number;
-  temLinhaParada: boolean;
-  children: ReactNode;
-}
-
+import { ChevronDown, AlertTriangle } from "lucide-react";
+interface LocationCardProps { local: string; contagem: number; temLinhaParada: boolean; children: ReactNode; }
 export function LocationCard({ local, contagem, temLinhaParada, children }: LocationCardProps) {
   const [aberto, setAberto] = useState(true);
   const [pronto, setPronto] = useState(false);
-  // tilt mais discreto que o dos Cards normais — grid cheio de cards
-  // pede um movimento mais sutil
-  const { ref, onMouseMove, onMouseLeave, onMouseEnter } = useTilt<HTMLDivElement>(6);
-
-  useEffect(() => {
-    const desktop = window.matchMedia("(min-width: 768px)").matches;
-    setAberto(desktop);
-    setPronto(true);
-  }, []);
-
+  useEffect(() => { const desktop = window.matchMedia("(min-width: 768px)").matches; setAberto(desktop); setPronto(true); }, []);
   const corForte = corParaLocal(local, 1, 62);
-  const corTexto = corParaLocal(local, 1, 78);
-  const corGlow = temLinhaParada ? "#FF1F4B" : corForte;
-
   return (
-    <div
-      ref={ref}
-      onMouseMove={onMouseMove}
-      onMouseLeave={onMouseLeave}
-      onMouseEnter={onMouseEnter}
-      className={`group relative flex flex-col overflow-hidden rounded-[20px] border backdrop-blur-sm transition-all duration-300 ${
-        temLinhaParada ? "animate-pulse-led" : ""
-      }`}
-      style={{
-        transformStyle: "preserve-3d",
-        borderColor: temLinhaParada ? "#FF1F4B" : corParaLocal(local, 0.55),
-        backgroundColor: "var(--card-bg)",
-        backgroundImage: temLinhaParada
-          ? "linear-gradient(160deg, rgba(255,31,75,0.22), rgba(255,31,75,0.02) 55%)"
-          : `linear-gradient(160deg, ${corParaLocal(local, 0.28)}, transparent 55%)`,
-        boxShadow: [
-          `0 0 24px -4px ${corGlow}99`,
-          `0 0 70px -12px ${corGlow}55`,
-          `0 18px 40px -20px rgba(0,0,0,0.6)`,
-          `inset 0 1px 0 var(--card-highlight)`,
-          `0 0 0 1px ${corGlow}33`,
-        ].join(", "),
-      }}
-    >
-      <button
-        type="button"
-        onClick={() => setAberto((v) => !v)}
-        className="flex w-full items-start justify-between gap-3 px-4 pb-2.5 pt-3.5 text-left"
-      >
-        <div className="flex flex-col gap-1">
+    <div className={`group relative flex flex-col overflow-hidden rounded-lg border bg-panel transition-all duration-150 ${temLinhaParada ? "border-rose-500/30 bg-rose-500/[0.01] dark:bg-rose-500/[0.02]" : "border-panel-border hover:border-zinc-700 dark:hover:border-zinc-800 shadow-premium"}`}>
+      {temLinhaParada && <div className="absolute inset-x-0 top-0 h-[2px] bg-rose-500 animate-pulse-led" />}
+      <button type="button" onClick={() => setAberto((v) => !v)} className="flex w-full items-start justify-between gap-3 px-4 pb-3 pt-4 text-left focus:outline-none">
+        <div className="flex flex-col gap-0.5">
           <div className="flex items-center gap-2">
-            <span
-              className="h-2 w-2 shrink-0 rounded-full"
-              style={{ backgroundColor: corForte, boxShadow: `0 0 8px 1px ${corForte}` }}
-            />
-            <span
-              className="font-display text-sm font-bold uppercase tracking-wide"
-              style={{ color: temLinhaParada ? "#FF1F4B" : corTexto }}
-            >
-              {local}
-            </span>
+            <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${temLinhaParada ? "bg-rose-500 animate-pulse-led" : ""}`} style={!temLinhaParada ? { backgroundColor: corForte } : {}} />
+            <span className={`font-display text-xs font-semibold uppercase tracking-wider ${temLinhaParada ? "text-rose-500" : "text-ink"}`}>{local}</span>
+            {temLinhaParada && <span className="inline-flex items-center gap-1 rounded bg-rose-500/10 px-1.5 py-0.5 font-mono text-[9px] font-medium uppercase tracking-wider text-rose-500 animate-pulse-led"><AlertTriangle className="h-2.5 w-2.5" />Linha Parada</span>}
           </div>
-          <div className="flex items-baseline gap-1.5">
-            <span
-              className="font-display text-4xl font-bold leading-none"
-              style={{
-                color: temLinhaParada ? "#FF1F4B" : corTexto,
-                textShadow: `0 0 20px ${corGlow}66`,
-              }}
-            >
-              {contagem}
-            </span>
-            <span className="font-mono text-[10px] uppercase tracking-wide text-card-dim">
-              {contagem === 1 ? "pendente" : "pendentes"}
-            </span>
-          </div>
-          <span
-            className={`mt-1 w-fit rounded px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wide ${
-              temLinhaParada
-                ? "animate-pulse-led bg-parada/20 text-parada"
-                : "invisible"
-            }`}
-          >
-            linha parada
-          </span>
+          <div className="mt-1 flex items-baseline gap-2"><span className={`font-display text-3xl font-medium tracking-tight ${temLinhaParada ? "text-rose-500" : "text-ink"}`}>{contagem}</span><span className="font-mono text-[10px] uppercase tracking-wider text-dim">{contagem === 1 ? "demanda" : "demandas"}</span></div>
         </div>
-
-        <div className="flex shrink-0 items-center gap-2">
-          <span
-            className="flex h-11 w-11 items-center justify-center rounded-full border-2"
-            style={{
-              borderColor: corParaLocal(local, 0.5),
-              backgroundColor: corParaLocal(local, 0.12),
-              boxShadow: `0 0 16px -2px ${corGlow}88`,
-            }}
-          >
-            <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: corForte }} />
-          </span>
-          <span
-            className="text-card-dim transition-transform"
-            style={{ transform: aberto ? "rotate(180deg)" : "none" }}
-          >
-            ▾
-          </span>
-        </div>
+        <div className="flex shrink-0 items-center gap-2 pt-0.5"><div className={`flex h-6 w-6 items-center justify-center rounded-md border text-dim transition-transform duration-150 ${aberto ? "rotate-180 text-ink bg-surface-2" : "bg-transparent"} ${temLinhaParada ? "border-rose-500/20" : "border-panel-border"}`}><ChevronDown className="h-3.5 w-3.5 stroke-[2.5]" /></div></div>
       </button>
-
-      {pronto && aberto && (
-        <div className="scroll-area h-[204px] space-y-1.5 overflow-y-auto border-t border-white/10 px-4 py-2.5">
-          {children}
-        </div>
-      )}
+      {pronto && aberto && <div className={`scroll-area h-[220px] space-y-2 overflow-y-auto border-t px-4 py-3 bg-bg/20 ${temLinhaParada ? "border-rose-500/10" : "border-panel-border/60"}`}>{children}</div>}
     </div>
   );
 }
