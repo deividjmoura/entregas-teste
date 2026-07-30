@@ -8,7 +8,7 @@ export const URGENCIA_LABELS: Record<string, string> = {
   BAIXA: "Baixa",
   MEDIA: "Média",
   CRITICA: "Crítica",
-  LINHA_PARADA: "🔴 Linha parada",
+  LINHA_PARADA: "Linha parada",
 };
 
 export const URGENCIA_PESO: Record<string, number> = {
@@ -18,11 +18,12 @@ export const URGENCIA_PESO: Record<string, number> = {
   BAIXA: 1,
 };
 
+// Sincronização estrita com os valores RGBA/Tokens do Design System (Amber, Rose, Sky, Indigo)
 export const URGENCIA_COR: Record<string, string> = {
-  LINHA_PARADA: "#FF1F4B",
-  CRITICA: "#E8552F",
-  MEDIA: "#F2B705",
-  BAIXA: "#3EC1D3",
+  LINHA_PARADA: "rgb(244 63 94)", // Rose 500
+  CRITICA: "rgb(245 158 11)",      // Amber 500
+  MEDIA: "rgb(14 165 233)",        // Sky 500
+  BAIXA: "rgb(113 113 122)",       // Zinc 500
 };
 
 export const STATUS_LABELS: Record<string, string> = {
@@ -73,12 +74,6 @@ function hueParaLocal(nome: string): number {
   return Math.abs(hash) % 360;
 }
 
-/**
- * Cor determinística por nome de local (hash -> HSL), pra cada linha/destino
- * ter sempre a mesma cor entre reloads. `alpha` e `luminosidade` permitem
- * gerar variações translúcidas pro efeito "glass" dos cards do dashboard.
- * Provisório até definirmos uma paleta fixa por localidade.
- */
 export function corParaLocal(nome: string, alpha = 1, luminosidade = 55): string {
   const matiz = hueParaLocal(nome);
   return `hsla(${matiz}, 65%, ${luminosidade}%, ${alpha})`;

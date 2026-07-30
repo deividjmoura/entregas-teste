@@ -185,7 +185,7 @@ export default function EntregadorPage() {
 
   async function concluirLista() {
     if (!nome) return;
-    const emRota = minhasEmCurso.filter((s) => s.entregadorNome === nome && s.status === "EM_ROTA");
+    const emRota = minhasEmCurso.filter((s) => s.entregadorNome === nome && (s.status === "EM_ROTA" || s.status === "EM_BAIXA"));
     if (emRota.length === 0) return;
     setConcluindoLista(true);
     setErro(null);

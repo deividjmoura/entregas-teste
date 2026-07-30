@@ -22,21 +22,24 @@ export function NotificacoesProvider({ children }: { children: React.ReactNode }
   const { nome } = useAuth();
   const [mensagensNaoLidas, setMensagensNaoLidas] = useState<Record<string, number>>({});
   const [perfil, setPerfil] = useState<"solicitante" | "entregador" | null>(null);
-  // IDs limpos localmente — ignora contagem da API por alguns segundos
   const limposAte = useRef<Record<string, number>>({});
 
   useEffect(() => {
     setPerfil(lerPerfil());
-    const onStorage = (e: StorageEvent) => {
-      if (e.key === "entregas:perfil") setPerfil(lerPerfil());
-    };
-    const onFocus = () => setPerfil(lerPerfil());
-    window.addEventListener("storage", onStorage);
-    window.addEventListener("focus", onFocus);
-    const tick = setInterval(() => setPerfil(lerPerfil()), 3000);
+
+    const atualizarPerfil = () => setPerfil(lerPerfil());
+
+    // Escuta tanto modificações externas (outras abas) quanto internas (mesma aba via evento customizado)
+    window.addEventListener("storage", atualizarPerfil);
+    window.addEventListener("focus", atualizarPerfil);
+    window.addEventListener("entregas:perfilMudou", atualizarPerfil);
+
+    const tick = setInterval(atualizarPerfil, 3000);
+
     return () => {
-      window.removeEventListener("storage", onStorage);
-      window.removeEventListener("focus", onFocus);
+      window.removeEventListener("storage", atualizarPerfil);
+      window.removeEventListener("focus", atualizarPerfil);
+      window.removeEventListener("entregas:perfilMudou", atualizarPerfil);
       clearInterval(tick);
     };
   }, []);
@@ -55,7 +58,7 @@ export function NotificacoesProvider({ children }: { children: React.ReactNode }
         const filtrado: Record<string, number> = {};
         for (const [id, n] of Object.entries(data)) {
           const ate = limposAte.current[id];
-          if (ate && agora < ate) continue; // ainda no grace period
+          if (ate && agora < ate) continue;
           if (n > 0) filtrado[id] = n;
         }
         setMensagensNaoLidas(filtrado);
@@ -74,7 +77,7 @@ export function NotificacoesProvider({ children }: { children: React.ReactNode }
   }, [nome, perfil, buscar]);
 
   const limparNotificacoes = (solicitacaoId: string) => {
-    limposAte.current[solicitacaoId] = Date.now() + 8000; // 8s de graça
+    limposAte.current[solicitacaoId] = Date.now() + 8000;
     setMensagensNaoLidas((prev) => {
       const novo = { ...prev };
       delete novo[solicitacaoId];

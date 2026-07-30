@@ -29,8 +29,12 @@ model Solicitacao {
   lidaSolicitanteEm   DateTime?
   lidaEntregadorEm    DateTime?
 
-  mensagens           Mensagem[]
+  mensagens Mensagem[]
 
+  @@index([status])
+  @@index([solicitanteNome])
+  @@index([criadaEm(sort: Desc)])
+  @@index([descricaoItem, localDestino])
   @@index([status, urgencia])
 }
 

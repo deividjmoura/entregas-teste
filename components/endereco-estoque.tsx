@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { MapPin, Plus, X } from "lucide-react"; // Uso estrito de Lucide Icons
 
 interface EnderecoEstoqueProps {
   solicitacaoId: string;
@@ -8,7 +9,6 @@ interface EnderecoEstoqueProps {
   onAtualizado: (novoEndereco: string | null) => void;
   somenteLeitura?: boolean;
   nomeUsuario?: string;
-  /** Quem foi o último a alterar o endereço deste item */
   alteradoPor?: string | null;
 }
 
@@ -58,12 +58,13 @@ export function EnderecoEstoque({
     }
   }
 
-  const badge = (conteudo: string, classe: string) => (
-    <span className={`group/end relative inline-flex items-center rounded px-1.5 py-0.5 font-mono text-[11px] ${classe}`}>
-      {conteudo}
+  const badge = (conteudo: string, classe: string, mostrarIcone = false) => (
+    <span className={`group/end relative inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 font-mono text-[10.5px] uppercase font-medium tracking-wide transition-all border ${classe}`}>
+      {mostrarIcone && <MapPin className="h-3 w-3 shrink-0" />}
+      <span>{conteudo}</span>
       {endereco && alteradoPor && (
-        <span className="pointer-events-none absolute -top-7 left-1/2 z-30 w-max -translate-x-1/2 rounded bg-bg px-2 py-1 text-[10px] normal-case text-ink opacity-0 shadow-lg ring-1 ring-panel-border transition-opacity group-hover/end:opacity-100">
-          alterado por {alteradoPor}
+        <span className="pointer-events-none absolute -top-8 left-1/2 z-40 w-max -translate-x-1/2 rounded border border-panel-border bg-panel px-2 py-1 text-[9.5px] font-sans normal-case text-ink opacity-0 shadow-premium transition-opacity duration-150 group-hover/end:opacity-100">
+          Última alteração por: {alteradoPor}
         </span>
       )}
     </span>
@@ -71,46 +72,50 @@ export function EnderecoEstoque({
 
   if (somenteLeitura) {
     if (!endereco) return null;
-    return badge(`📍 ${endereco}`, "bg-progress/15 text-progress");
+    return badge(endereco, "bg-indigo-500/5 text-indigo-500 border-indigo-500/10", true);
   }
 
   return (
-    <div ref={ref} className="relative inline-block">
-      <button type="button" onClick={() => setAberto((v) => !v)} className="align-middle">
+    <div ref={ref} className="relative inline-block align-middle">
+      <button type="button" onClick={() => setAberto((v) => !v)} className="btn-press outline-none flex items-center">
         {endereco
-          ? badge(`📍 ${endereco}`, "text-progress underline decoration-dotted hover:text-ink")
+          ? badge(endereco, "text-indigo-500 border-indigo-500/10 bg-indigo-500/5 hover:border-indigo-500/30 cursor-pointer", true)
           : (
-            <span className="rounded px-1.5 py-0.5 font-mono text-[11px] text-dim underline decoration-dotted hover:text-ink">
-              + endereço no estoque
+            <span className="inline-flex items-center gap-1 rounded-md border border-panel-border bg-panel px-1.5 py-0.5 font-mono text-[10.5px] font-medium text-dim hover:text-ink hover:border-zinc-700 transition-colors cursor-pointer">
+              <Plus className="h-3 w-3" /> endereço estoque
             </span>
           )}
       </button>
 
       {aberto && (
-        <div className="absolute left-0 top-full z-20 mt-1.5 w-56 rounded-lg border border-panel-border bg-panel p-3 shadow-lg">
-          <label className="mb-1 block font-mono text-[10px] uppercase tracking-wide text-dim">
+        <div className="absolute left-0 top-[calc(100%+6px)] z-40 w-56 rounded-md border border-panel-border bg-panel p-3 shadow-premium-lg animate-fade-in [animation-duration:140ms]">
+          <label className="mb-1 block font-mono text-[10px] uppercase font-semibold tracking-wider text-dim">
             Endereço no estoque
           </label>
           <input
             autoFocus
             value={valor}
             onChange={(e) => setValor(e.target.value.toUpperCase())}
-            placeholder="Ex: G03A05"
-            className="mb-1 w-full rounded border border-panel-border bg-bg px-2 py-1.5 font-mono text-sm uppercase text-ink focus:border-progress"
+            placeholder="EX: G03A05"
+            className="mb-2 w-full rounded border border-panel-border bg-surface-2 px-2 py-1 font-mono text-xs uppercase text-ink outline-none transition-colors focus:border-indigo-500/50"
             onKeyDown={(e) => e.key === "Enter" && salvar()}
           />
           {endereco && alteradoPor && (
-            <p className="mb-2 font-mono text-[10px] text-dim">último a alterar: {alteradoPor}</p>
+            <p className="mb-2 font-mono text-[9px] text-muted">Operador atual: {alteradoPor}</p>
           )}
-          <div className="flex justify-end gap-2">
-            <button type="button" onClick={() => setAberto(false)} className="font-mono text-[11px] text-dim hover:text-ink">
+          <div className="flex justify-end gap-2 border-t border-panel-border/40 pt-2">
+            <button 
+              type="button" 
+              onClick={() => setAberto(false)} 
+              className="btn-press font-mono text-[11px] text-muted hover:text-ink transition-colors"
+            >
               cancelar
             </button>
             <button
               type="button"
               onClick={salvar}
               disabled={salvando}
-              className="rounded bg-progress px-2.5 py-1 font-mono text-[11px] font-semibold text-bg hover:brightness-110 disabled:opacity-50"
+              className="btn-press rounded bg-indigo-600 px-2.5 py-1 font-mono text-[11px] font-medium text-white hover:bg-indigo-700 transition-colors shadow-sm disabled:opacity-40"
             >
               {salvando ? "..." : "salvar"}
             </button>

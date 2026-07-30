@@ -3,21 +3,13 @@ import { prisma } from "@/lib/prisma";
 
 const URGENCIAS_VALIDAS = ["BAIXA", "MEDIA", "CRITICA", "LINHA_PARADA"];
 
-// De onde cada novo status pode vir. EM_ROTA ainda pode nascer de EM_BAIXA
-// (o entregador corrige um "não achei" anterior e confirma que achou),
-// mas o caminho contrário — ir de EM_ROTA pra EM_BAIXA — não é mais
-// permitido: depois de marcar "achei" não faz sentido voltar a "não achei".
+// Correção Lógica 1: Permite a transição mútua bidirecional e o reprocessamento 
+// sem deixar o entregador preso se realizar uma triagem incorreta em estoque.
 const STATUS_TRANSICOES_VALIDAS: Record<string, string[]> = {
-  EM_ROTA: ["EM_CURSO", "EM_BAIXA"],
-  EM_BAIXA: ["EM_CURSO"],
+  EM_ROTA: ["EM_CURSO", "EM_BAIXA", "EM_ROTA"],
+  EM_BAIXA: ["EM_CURSO", "EM_ROTA", "EM_BAIXA"],
 };
 
-/**
- * Endpoint único pra tudo que é "editar campo de uma solicitação existente":
- * urgência, transição de status do entregador (achei / não achei) e
- * favoritar. Em vez de criar uma rota nova pra cada ação, o body decide
- * qual bloco roda — mantém o número de arquivos de API baixo.
- */
 export async function PATCH(
   request: NextRequest,
   { params }: { params: { id: string } },
@@ -25,8 +17,7 @@ export async function PATCH(
   const body = await request.json();
   const { urgencia, status, favorito } = body;
 
-  // Favoritar independe de status — funciona até em solicitação já
-  // concluída, é só uma marcação do solicitante no histórico.
+  // Bloco Favorito (Sempre liberado)
   if (favorito !== undefined) {
     const atualizada = await prisma.solicitacao.update({
       where: { id: params.id },
@@ -35,7 +26,7 @@ export async function PATCH(
     return NextResponse.json(atualizada);
   }
 
-  // Transição de status feita pelo entregador (achei / não achei o item).
+  // Bloco de Atualização de Status (Logística do Entregador)
   if (status !== undefined) {
     const origensValidas = STATUS_TRANSICOES_VALIDAS[status];
     if (!origensValidas) {
@@ -55,18 +46,20 @@ export async function PATCH(
     return NextResponse.json(atualizada);
   }
 
-  // Alterar urgência (comportamento original).
+  // Bloco de Alteração de Urgência (Autonomia Total do Solicitante)
+  // Correção Lógica 2: Permite mutações mesmo se o item estiver EM_BAIXA ou EM_ROTA,
+  // bloqueando apenas se a demanda operacional já estiver encerrada.
   if (urgencia !== undefined) {
     if (!URGENCIAS_VALIDAS.includes(urgencia)) {
       return NextResponse.json({ erro: "Urgência inválida" }, { status: 400 });
     }
     const resultado = await prisma.solicitacao.updateMany({
-      where: { id: params.id, status: { in: ["PENDENTE", "EM_CURSO"] } },
+      where: { id: params.id, status: { notIn: ["ENTREGUE", "CANCELADA"] } },
       data: { urgencia },
     });
     if (resultado.count === 0) {
       return NextResponse.json(
-        { erro: "Só é possível alterar a urgência de solicitações pendentes ou em curso" },
+        { erro: "Só é possível alterar a urgência de solicitações em andamento" },
         { status: 409 },
       );
     }

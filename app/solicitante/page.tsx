@@ -322,7 +322,7 @@ export default function SolicitantePage() {
                   <Select
                     size="sm"
                     value={s.urgencia}
-                    onChange={(e) => alterarUrgencia(s.id, e.target.value)}
+                    onChange={(e) => { const novaUrgencia = e.target.value; alterarUrgencia(s.id, novaUrgencia); }}
                     className="font-mono"
                     title="Alterar urgência"
                   >

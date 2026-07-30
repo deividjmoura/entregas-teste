@@ -13,7 +13,12 @@ export function useFotoAmpliada() {
       if (res.ok) {
         const data = await res.json();
         setFoto(data.foto);
+      } else {
+        console.error("Erro na API ao recuperar anexo fotográfico:", res.statusText);
       }
+    } catch (error) {
+      // Correção de bug: Evita que o estado fique preso em true se houver queda de rede
+      console.error("Falha de conectividade ou timeout ao buscar foto:", error);
     } finally {
       setCarregando(false);
     }
