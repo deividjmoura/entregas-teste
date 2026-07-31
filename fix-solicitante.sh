@@ -1,24 +1,41 @@
 #!/bin/bash
 # ==============================================================================
-# SCRIPT DE CORREÇÃO — PONTO DE NOTIFICAÇÃO DO CHAT SUMIU
-# Alvo: lib/use-notificacoes-chat.tsx
-# Objetivo: Corrigir o nome da função do estado de setSetMensagensNaoLidas para setMensagensNaoLidas.
+# SCRIPT DE OTIMIZAÇÃO — CONFIGURAÇÃO DE COMPILAÇÃO DO NEXT.JS
+# Alvo: next.config.js
+# Objetivo: Ativar minificação SWC, compressão nativa e limpeza de logs em produção.
 # ==============================================================================
 set -e
 
-NOTIF_FILE="lib/use-notificacoes-chat.tsx"
+NEXT_CONF="next.config.js"
 
-if [ -f "$NOTIF_FILE" ]; then
-  echo "🔧 Corrigindo nome da função de estado no arquivo de notificações..."
+if [ -f "$NEXT_CONF" ]; then
+  echo "⚙️ Configurando diretrizes de build de alta performance em $NEXT_CONF..."
   
-  # Utiliza o sed nativo para corrigir o erro de digitação duplicado de forma cirúrgica
-  if grep -q "setSetMensagensNaoLidas" "$NOTIF_FILE"; then
-    sed -i 's/setSetMensagensNaoLidas/setMensagensNaoLidas/g' "$NOTIF_FILE"
-    echo "✅ Linha de estado corrigida com sucesso!"
-  else
-    echo "⚠️ O erro de digitação não foi encontrado. Verifique se o arquivo já está correto."
-  fi
+  cat << 'EOF' > "$NEXT_CONF"
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  // Ativa a minificação ultrarrápida usando o compilador SWC em Rust
+  swcMinify: true,
+  
+  // Habilita compressão nativa baseada em Gzip/Brotli para entregar arquivos menores
+  compress: true,
+  
+  // Otimizações de renderização do compilador
+  compiler: {
+    // Remove console.logs em produção para segurança de dados e performance
+    removeConsole: process.env.NODE_ENV === "production" ? { exclude: ["error", "warn"] } : false,
+  },
+  
+  // Força o Next.js a usar builds limpos de CSS e remove avisos redundantes
+  images: {
+    unoptimized: process.env.NODE_ENV === "production" ? false : true,
+  }
+};
+
+module.exports = nextConfig;
+EOF
+  echo "✅ Arquivo next.config.js otimizado com sucesso para produção!"
 else
-  echo "❌ Arquivo $NOTIF_FILE não encontrado. Verifique se o caminho está correto."
+  echo "❌ Arquivo $NEXT_CONF não encontrado na raiz do projeto."
   exit 1
 fi
