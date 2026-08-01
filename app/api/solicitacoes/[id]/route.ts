@@ -6,8 +6,9 @@ const URGENCIAS_VALIDAS = ["BAIXA", "MEDIA", "CRITICA", "LINHA_PARADA"];
 // Correção Lógica 1: Permite a transição mútua bidirecional e o reprocessamento 
 // sem deixar o entregador preso se realizar uma triagem incorreta em estoque.
 const STATUS_TRANSICOES_VALIDAS: Record<string, string[]> = {
-  EM_ROTA: ["EM_CURSO", "EM_BAIXA", "EM_ROTA"],
-  EM_BAIXA: ["EM_CURSO", "EM_ROTA", "EM_BAIXA"],
+EM_ROTA: ["PENDENTE", "EM_CURSO", "EM_BAIXA", "EM_ROTA"],
+EM_CURSO: ["PENDENTE", "EM_ROTA", "EM_BAIXA", "EM_CURSO"],
+EM_BAIXA: ["PENDENTE", "EM_CURSO", "EM_ROTA", "EM_BAIXA"],
 };
 
 export async function PATCH(
