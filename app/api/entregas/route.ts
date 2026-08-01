@@ -11,7 +11,7 @@ export async function POST(req: Request) {
 
     const novaEntrega = { id: Date.now().toString(), ...body, createdAt: new Date() };
 
-    # Dispara o evento instantaneamente para todos os ouvintes no canal "painel-entregas"
+    // Dispara o evento instantaneamente para todos os ouvintes no canal "painel-entregas"
     await pusherServer.trigger('painel-entregas', 'nova-entrega', novaEntrega);
 
     return NextResponse.json({ success: true, data: novaEntrega });
