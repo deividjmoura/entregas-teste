@@ -14,6 +14,15 @@ export const metadata: Metadata = {
   title: "Entregas Internas | Sistema de Gestão de Entregas",
   description: "Sistema para gerenciamento de entregas internas com fila inteligente, prioridades, chat e histórico em tempo real.",
   manifest: "/manifest.json",
+  // Adicionado: configuração expressa de favicons e ícones para o Next.js App Router
+  icons: {
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/favicon.png", type: "image/png" },
+    ],
+    shortcut: "/favicon.svg",
+    apple: "/favicon.svg",
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
@@ -33,7 +42,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="pt-BR" className={`${GeistSans.variable} ${GeistMono.variable}`}>
       <head>
-        <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+        {/* Atualizado para indicar o ícone correto gerado na pasta public */}
+        <link rel="apple-touch-icon" href="/favicon.svg" />
         <script
           dangerouslySetInnerHTML={{
             __html: `try { const tema = localStorage.getItem('entregas:tema'); if (tema === 'light') document.documentElement.classList.add('light'); } catch (e) {}`,
