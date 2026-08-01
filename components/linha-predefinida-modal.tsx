@@ -13,7 +13,8 @@ export function LinhaPredefinidaModal({ onDefinir, onPular, valorInicial = "" }:
   const [valor, setValor] = useState(valorInicial);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-6 backdrop-blur-[1px] animate-fade-in">
+    
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-6 backdrop-blur-[1px] animate-fade-in">
       <div className="w-full max-w-sm rounded-lg border border-panel-border bg-panel p-5 shadow-premium-lg">
         
         <div className="mb-4 flex items-center gap-2">
