@@ -7,6 +7,7 @@ export function PWAProvider({ children }: { children: React.ReactNode }) {
   const [isInstallable, setIsInstallable] = useState(false);
 
   useEffect(() => {
+    // Registrar SW
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker
         .register('/sw.js')
@@ -15,6 +16,7 @@ export function PWAProvider({ children }: { children: React.ReactNode }) {
     }
 
     const handleBeforeInstall = (e: Event) => {
+      console.log('💡 Evento beforeinstallprompt disparado!');
       e.preventDefault();
       setDeferredPrompt(e);
       setIsInstallable(true);
@@ -31,10 +33,9 @@ export function PWAProvider({ children }: { children: React.ReactNode }) {
     if (!deferredPrompt) return;
     deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
-    if (outcome === 'accepted') {
-      setIsInstallable(false);
-      setDeferredPrompt(null);
-    }
+    console.log('Resultado do prompt de instalação:', outcome);
+    setIsInstallable(false);
+    setDeferredPrompt(null);
   };
 
   return (
