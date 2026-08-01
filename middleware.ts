@@ -19,6 +19,15 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // NOVO: aceita o mesmo token via header Authorization (usado pelo app Flutter)
+  const authHeader = request.headers.get("authorization");
+  const bearerToken = authHeader?.startsWith("Bearer ")
+    ? authHeader.slice(7)
+    : null;
+  if (bearerToken && bearerToken === process.env.ACCESS_TOKEN) {
+    return NextResponse.next();
+  }
+
   const url = request.nextUrl.clone();
   url.pathname = "/acesso";
   url.searchParams.set("redirect", pathname);
