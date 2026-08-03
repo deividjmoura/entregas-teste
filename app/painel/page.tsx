@@ -64,6 +64,7 @@ export default function PainelPage() {
   const [buscando, setBuscando] = useState(false);
 
   const [filtroRapido, setFiltroRapido] = useState<FiltroRapido>(null);
+  const [localFiltro, setLocalFiltro] = useState<string | null>(null);
 
   const buscaValida = busca.trim().length >= 5;
   const temFiltroBusca = Boolean(buscaValida || desde || ate);
@@ -159,6 +160,20 @@ export default function PainelPage() {
         return a.local.localeCompare(b.local);
       });
   }, [gruposBase]);
+
+  const todosLocais = useMemo(
+    () => Array.from(new Set(ativos.map((s) => s.localDestino))).sort((a, b) => a.localeCompare(b)),
+    [ativos],
+  );
+
+  const gruposExibidos = useMemo(
+    () => (localFiltro ? grupos.filter((g) => g.local === localFiltro) : grupos),
+    [grupos, localFiltro],
+  );
+
+  function alternarLocalFiltro(local: string) {
+    setLocalFiltro((atual) => (atual === local ? null : local));
+  }
 
   const rotasHoje = useMemo(
     () => Array.from(new Set(entreguesRecentes.map((s) => s.localDestino))),
@@ -278,19 +293,57 @@ export default function PainelPage() {
 
             {carregandoDashboard && <SkeletonList count={4} />}
 
+            {!carregandoDashboard && (filtroRapido === "PENDENTE" || filtroRapido === "EM_CURSO" || filtroRapido === null) && todosLocais.length > 0 && (
+              <div className="mb-4 flex flex-wrap items-center gap-1.5">
+                <span className="mr-1 font-mono text-[10px] uppercase tracking-wider text-dim">Local:</span>
+                {todosLocais.map((local) => {
+                  const ativo = localFiltro === local;
+                  const cor = corParaLocal(local, 1, 62);
+                  return (
+                    <button
+                      key={local}
+                      type="button"
+                      onClick={() => alternarLocalFiltro(local)}
+                      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 font-mono text-[10px] font-medium uppercase tracking-wider transition-colors ${
+                        ativo ? "border-transparent text-white" : "border-panel-border text-dim hover:text-ink hover:border-zinc-700 dark:hover:border-zinc-800"
+                      }`}
+                      style={ativo ? { backgroundColor: cor } : undefined}
+                    >
+                      <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ backgroundColor: ativo ? "rgba(255,255,255,0.85)" : cor }} />
+                      {local}
+                    </button>
+                  );
+                })}
+                {localFiltro && (
+                  <button
+                    onClick={() => setLocalFiltro(null)}
+                    className="ml-1 font-mono text-[10px] text-dim underline decoration-dotted hover:text-ink"
+                  >
+                    limpar
+                  </button>
+                )}
+              </div>
+            )}
+
             {!carregandoDashboard && (filtroRapido === "PENDENTE" || filtroRapido === "EM_CURSO" || filtroRapido === null) && (
               <>
-                {grupos.length === 0 && (
+                {gruposExibidos.length === 0 && (
                   <EmptyState
                     icon="✅"
-                    title={filtroRapido ? `Nenhuma solicitação ${filtroRapido === "PENDENTE" ? "pendente" : "em curso"}` : "Nenhuma solicitação ativa"}
+                    title={
+                      localFiltro
+                        ? `Nenhuma solicitação em ${localFiltro}`
+                        : filtroRapido
+                          ? `Nenhuma solicitação ${filtroRapido === "PENDENTE" ? "pendente" : "em curso"}`
+                          : "Nenhuma solicitação ativa"
+                    }
                     subtitle="A fila está limpa no momento"
                   />
                 )}
 
-                {grupos.length > 0 && (
+                {gruposExibidos.length > 0 && (
                   <div className="grid items-start gap-3 [grid-template-columns:repeat(auto-fill,minmax(300px,1fr))]">
-                    {grupos.map(({ local, lista, temLinhaParada }) => (
+                    {gruposExibidos.map(({ local, lista, temLinhaParada }) => (
                       <LocationCard key={local} local={local} contagem={lista.length} temLinhaParada={temLinhaParada}>
                         {lista.map((s) => (
                           <div key={s.id} className="rounded-lg border border-panel-border/60 bg-bg/40 px-3 py-2">
