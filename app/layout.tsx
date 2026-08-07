@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
-import { ThemeToggle } from "@/components/theme-toggle";
+import { GlobalThemeToggle } from "@/components/global-theme-toggle";
 import "./globals.css";
 import { AuthProvider } from "@/lib/auth-context";
 import { PresenceProvider } from "@/lib/presence-context";
@@ -57,7 +57,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <NotificacoesProvider>
                 <ModalNome />
                 <div className="relative min-h-screen flex flex-col">{children}</div>
-                <ThemeToggle />
+                <GlobalThemeToggle />
               </NotificacoesProvider>
             </PresenceProvider>
           </AuthProvider>

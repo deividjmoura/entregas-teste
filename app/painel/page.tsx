@@ -10,6 +10,7 @@ import { OnlineBanner } from "@/components/online-banner";
 import { SkeletonList, EmptyState } from "@/components/skeleton";
 import { LocationCard } from "@/components/location-card";
 import { Topbar } from "@/components/topbar";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { MetricCard } from "@/components/metric-card";
 import { Card } from "@/components/ui/card";
 import { IconRequests, IconTruck, IconUsers, IconDashboard } from "@/components/icons";
@@ -160,6 +161,10 @@ export default function PainelPage() {
         onSair={user ? sair : undefined}
         extra={
           <div className="flex items-center gap-3">
+            <ThemeToggle
+              variant="icon"
+              className="!h-7 !w-7 border border-panel-border bg-panel"
+            />
             <OnlineBanner />
             <button
               onClick={() => router.push("/pesquisa")}
