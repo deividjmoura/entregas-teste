@@ -9,7 +9,9 @@
     "postinstall": "prisma generate",
     "db:push": "prisma db push",
     "db:limpar-teste": "node scripts/limpar-dados-teste.js",
-    "db:seed-estoque": "node scripts/seed-estoque.js"
+    "db:seed-estoque": "node scripts/seed-estoque.js",
+    "db:limpar-itens-teste": "node scripts/limpar-itens-teste.js",
+    "db:seed-itens-teste": "node scripts/seed-itens-teste.js"
   },
   "dependencies": {
     "@prisma/client": "^5.16.0",

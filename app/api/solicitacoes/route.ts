@@ -66,38 +66,63 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const body = await request.json();
-  const { tipo, descricaoItem, localDestino, rackOuSlide, foto, urgencia, solicitanteNome } = body;
+  try {
+    const body = await request.json();
+    const { tipo, descricaoItem, localDestino, rackOuSlide, foto, urgencia, solicitanteNome } = body;
 
-  if (!tipo || !descricaoItem || !localDestino || !urgencia || !solicitanteNome) {
-    return NextResponse.json({ erro: "Campos obrigatórios faltando" }, { status: 400 });
+    if (!tipo || !descricaoItem || !localDestino || !urgencia || !solicitanteNome) {
+      return NextResponse.json({ erro: "Campos obrigatórios faltando" }, { status: 400 });
+    }
+
+    const descricaoNormalizada = String(descricaoItem).trim().toUpperCase();
+    const fotoInformada = foto ? String(foto) : null;
+
+    // Se esse item já tem endereço cadastrado no estoque (de uma entrega
+    // anterior), a nova solicitação já nasce com o endereço preenchido —
+    // o entregador não precisa cadastrar de novo.
+    const itemConhecido = await prisma.itemEstoque.findFirst({
+      where: { nomeItem: { equals: descricaoNormalizada, mode: "insensitive" } },
+    });
+
+    // Mesma lógica pra foto: se o solicitante não anexou uma foto agora,
+    // usa a última foto conhecida desse item (sempre a mais recente que
+    // alguém já tirou). Se anexou, essa foto passa a ser a "última foto"
+    // do item — substitui a anterior no estoque (ver upsert abaixo).
+    const fotoParaUsar = fotoInformada ?? itemConhecido?.foto ?? null;
+
+    const solicitacao = await prisma.solicitacao.create({
+      data: {
+        tipo,
+        descricaoItem: descricaoNormalizada,
+        localDestino: String(localDestino).trim().toUpperCase(),
+        rackOuSlide: rackOuSlide ? String(rackOuSlide).trim().toUpperCase() : null,
+        foto: fotoParaUsar,
+        temFoto: Boolean(fotoParaUsar),
+        urgencia,
+        solicitanteNome: String(solicitanteNome).trim(),
+        status: "PENDENTE",
+        enderecoEstoque: itemConhecido?.endereco ?? null,
+        enderecoAlteradoPor: itemConhecido?.endereco ? itemConhecido.ultimoAlteradoPor : null,
+      },
+      select: CAMPOS_LISTAGEM,
+    });
+
+    // Nova foto anexada agora → vira a foto atual do item no estoque,
+    // sempre substituindo a que já existia (uma foto por item, a mais recente).
+    if (fotoInformada) {
+      await prisma.itemEstoque.upsert({
+        where: { nomeItem: descricaoNormalizada },
+        update: { foto: fotoInformada },
+        create: { nomeItem: descricaoNormalizada, foto: fotoInformada },
+      });
+    }
+
+    return NextResponse.json(solicitacao, { status: 201 });
+  } catch (e) {
+    console.error("Erro ao criar solicitação:", e);
+    return NextResponse.json(
+      { erro: "Erro ao criar solicitação", detalhe: e instanceof Error ? e.message : String(e) },
+      { status: 500 },
+    );
   }
-
-  const descricaoNormalizada = String(descricaoItem).trim().toUpperCase();
-
-  // Se esse item já tem endereço cadastrado no estoque (de uma entrega
-  // anterior), a nova solicitação já nasce com o endereço preenchido —
-  // o entregador não precisa cadastrar de novo.
-  const itemConhecido = await prisma.itemEstoque.findFirst({
-    where: { nomeItem: { equals: descricaoNormalizada, mode: "insensitive" } },
-  });
-
-  const solicitacao = await prisma.solicitacao.create({
-    data: {
-      tipo,
-      descricaoItem: descricaoNormalizada,
-      localDestino: String(localDestino).trim().toUpperCase(),
-      rackOuSlide: rackOuSlide ? String(rackOuSlide).trim().toUpperCase() : null,
-      foto: foto ? String(foto) : null,
-      temFoto: Boolean(foto),
-      urgencia,
-      solicitanteNome: String(solicitanteNome).trim(),
-      status: "PENDENTE",
-      enderecoEstoque: itemConhecido?.endereco ?? null,
-      enderecoAlteradoPor: itemConhecido?.endereco ? itemConhecido.ultimoAlteradoPor : null,
-    },
-    select: CAMPOS_LISTAGEM,
-  });
-
-  return NextResponse.json(solicitacao, { status: 201 });
 }

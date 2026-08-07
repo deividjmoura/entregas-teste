@@ -41,6 +41,8 @@ model Solicitacao {
 model ItemEstoque {
   id                String   @id @default(uuid())
   nomeItem          String   @unique
+  descricao         String?  @db.Text
+  quantidade        Int      @default(0)
   endereco          String?
   ultimoAlteradoPor String?
   foto              String?  @db.Text
@@ -48,8 +50,22 @@ model ItemEstoque {
   atualizadoEm      DateTime @updatedAt
 
   historicoEndereco HistoricoEnderecoEstoque[]
+  rotas             RotaItem[]
 
   @@index([nomeItem])
+}
+
+model RotaItem {
+  id         String      @id @default(uuid())
+  itemId     String
+  item       ItemEstoque @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  destino    String
+  automatica Boolean     @default(false)
+  observacao String?     @db.Text
+  criadaPor  String?
+  criadaEm   DateTime    @default(now())
+
+  @@index([itemId, criadaEm])
 }
 
 model HistoricoEnderecoEstoque {

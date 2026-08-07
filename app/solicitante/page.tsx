@@ -259,6 +259,7 @@ export default function SolicitantePage() {
       nome={nome}
       items={[
         { label: "Trocar p/ entregador", icon: "🔄", onClick: () => router.push("/entregador") },
+        { label: "Pesquisar itens", icon: "🔍", onClick: () => router.push("/pesquisa") },
         { label: "Painel geral", icon: "📋", onClick: () => router.push("/painel") },
         { label: "Sair", icon: "🚪", onClick: sair },
       ]}

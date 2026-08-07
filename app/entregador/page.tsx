@@ -24,6 +24,7 @@ import { useNotificacoes } from "@/lib/use-notificacoes-chat";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { AppShell } from "@/components/app-shell";
+import { ItemInfoModal } from "@/components/item-info-modal";
 
 function ordenarGrupo(lista: SolicitacaoDTO[]): SolicitacaoDTO[] {
   return [...lista].sort((a, b) => {
@@ -56,6 +57,7 @@ export default function EntregadorPage() {
   const [concluindoLista, setConcluindoLista] = useState(false);
   const { foto: fotoAmpliada, carregando: carregandoFoto, abrir: abrirFoto, fechar: fecharFoto } = useFotoAmpliada();
   const [chatAberto, setChatAberto] = useState<string | null>(null);
+  const [itemInfoAberto, setItemInfoAberto] = useState<string | null>(null);
   const { mensagensNaoLidas, limparNotificacoes } = useNotificacoes();
   const pendentesIdsRef = useRef<Set<string> | null>(null);
 
@@ -245,6 +247,7 @@ export default function EntregadorPage() {
             router.push("/solicitante");
           },
         },
+        { label: "Pesquisar itens", icon: "🔍", onClick: () => router.push("/pesquisa") },
         { label: "Painel geral", icon: "📋", onClick: () => router.push("/painel") },
         { label: "Sair", icon: "🚪", onClick: sair },
       ]}
@@ -292,7 +295,14 @@ export default function EntregadorPage() {
                         </button>
                       )}
                       <div>
-                        <div className="text-sm text-ink">{s.descricaoItem}</div>
+                        <button
+                          type="button"
+                          onClick={() => setItemInfoAberto(s.descricaoItem)}
+                          className="text-sm text-ink underline decoration-dotted underline-offset-2 hover:text-accent"
+                          title="Ver informações do item"
+                        >
+                          {s.descricaoItem}
+                        </button>
                         <div className="flex flex-wrap items-center gap-1.5 font-mono text-[11px] text-dim">
                           <UrgencyDot color={URGENCIA_COR[s.urgencia]} />
                           <span style={{ color: URGENCIA_COR[s.urgencia] }}>{URGENCIA_LABELS[s.urgencia]}</span>
@@ -413,6 +423,17 @@ export default function EntregadorPage() {
                             )}
                             <span className="text-sm text-card-ink">{s.descricaoItem}</span>
                           </label>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setItemInfoAberto(s.descricaoItem);
+                            }}
+                            className="text-dim underline decoration-dotted underline-offset-2 hover:text-accent"
+                            title="Ver informações do item"
+                          >
+                            🔍
+                          </button>
                         </div>
                         <div className="flex flex-wrap items-center gap-x-2 font-mono text-[11px] text-card-dim">
                           {s.rackOuSlide && (
@@ -466,6 +487,13 @@ export default function EntregadorPage() {
         )}
 
         <ImageLightbox src={fotoAmpliada} onClose={fecharFoto} />
+        {itemInfoAberto && (
+          <ItemInfoModal
+            nomeItem={itemInfoAberto}
+            nomeUsuario={nome}
+            onClose={() => setItemInfoAberto(null)}
+          />
+        )}
         {chatAberto && (
         <ChatPanel
           solicitacaoId={chatAberto}

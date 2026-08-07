@@ -12,6 +12,7 @@ import {
   IconLogOut,
   IconRequests,
   IconUsers,
+  IconSearch,
 } from "@/components/icons";
 
 const CHAVE_COLAPSADA = "entregas:sidebarColapsada";
@@ -33,6 +34,7 @@ interface AppShellProps {
 function IconForItem({ label, className = "h-4 w-4" }: { label: string; className?: string }) {
   const l = label.toLowerCase();
   if (l.includes("entregador") || l.includes("trocar")) return <IconTruck className={className} />;
+  if (l.includes("pesquis") || l.includes("busca")) return <IconSearch className={className} />;
   if (l.includes("solicitante")) return <IconRequests className={className} />;
   if (l.includes("painel") || l.includes("geral") || l.includes("dashboard"))
     return <IconDashboard className={className} />;

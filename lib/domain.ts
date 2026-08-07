@@ -54,6 +54,37 @@ export interface SolicitacaoDTO {
   enderecoAlteradoPor: string | null;
 }
 
+export interface ItemEstoqueResumoDTO {
+  nomeItem: string;
+  descricao: string | null;
+  quantidade: number;
+  endereco: string | null;
+  temFoto: boolean;
+  totalSolicitacoes: number;
+}
+
+export interface RotaItemDTO {
+  id: string;
+  itemId: string;
+  destino: string;
+  automatica: boolean;
+  observacao: string | null;
+  criadaPor: string | null;
+  criadaEm: string;
+}
+
+export interface ItemEstoqueDetalheDTO {
+  id?: string;
+  nomeItem: string;
+  descricao: string | null;
+  quantidade: number;
+  endereco: string | null;
+  ultimoAlteradoPor: string | null;
+  foto: string | null;
+  rotas: RotaItemDTO[];
+  totalSolicitacoes: number;
+}
+
 export function formatarHora(iso: string): string {
   return new Date(iso).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
 }
