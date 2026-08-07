@@ -1,0 +1,33 @@
+/* gerado por scripts/build-theme.mjs a partir de brand/default/theme.json — não editar à mão */
+
+:root {
+  --color-bg: 9 9 11;
+  --color-panel: 14 14 17;
+  --color-panel-border: 39 39 42;
+  --color-ink: 244 244 245;
+  --color-dim: 161 161 170;
+  --color-muted: 82 82 91;
+  --color-accent: 79 70 229;
+  --color-accent-2: 99 102 241;
+  --color-surface-2: 24 24 27;
+  --color-sidebar-bg: 9 9 11;
+  --card-bg: #0e0e11;
+  --card-ink: #f4f4f5;
+  --card-dim: #a1a1aa;
+}
+
+.light {
+  --color-bg: 250 250 250;
+  --color-panel: 255 255 255;
+  --color-panel-border: 228 228 231;
+  --color-ink: 24 24 27;
+  --color-dim: 113 113 122;
+  --color-muted: 161 161 170;
+  --color-accent: 79 70 229;
+  --color-accent-2: 99 102 241;
+  --color-surface-2: 244 244 245;
+  --color-sidebar-bg: 255 255 255;
+  --card-bg: #ffffff;
+  --card-ink: #18181b;
+  --card-dim: #71717a;
+}
